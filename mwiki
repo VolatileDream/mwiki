@@ -48,14 +48,18 @@ mwiki_init(){
 
 	: foreach *.mw |> !m_build |> build/%B.html
 
+	: *.mw |> index++ -e text:* *.mw |> swish++.index
+
 	EOF
 
 }
 
 mwiki_tup(){
 	mwiki_require
+	local old="$PWD"
 	cd "$MWIKI_PATH"
 	tup "$@"
+	cd "$old"
 }
 
 mwiki_edit(){
@@ -80,16 +84,23 @@ mwiki_edit(){
 }
 
 mwiki_gen(){
+	# this function is used to generate any sort of markdown/format file
+	# to html output.
 	cat "$1" > "$2"
 }
 
 mwiki_browse(){
 	mwiki_require
+	mwiki_tup
+	cd "$MWIKI_PATH"
+
 	# use w3m
 }
 
 mwiki_search(){
 	mwiki_require
+	cd "$MWIKI_PATH"
+
 	# use search++
 }
 
