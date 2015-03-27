@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+MWIKI_NAME=".mwiki.d"
+MWIKI_PATH=""
+
+mwiki_usage(){
+	echo "mwiki <command> ..."
+}
+
+err(){
+	echo -e "\e[31m" "$@" "\e[0m" >> /dev/stderr
+}
+
+mwiki_require(){
+	# set the wiki path and look it up at the same time
+	MWIKI_PATH=`lookup $MWIKI_NAME`
+
+	if [ $? -ne 0 ]; then
+		err "No mwiki wiki was found."
+		err "Run: 'mwiki init' to create one."
+		exit 1
+	fi
+}
+
+mwiki_init(){
+	local dir="."
+
+	if [ $# -gt 0 ]; then
+		dir="$1" ; shift
+	fi
+
+	if [ -d "$dir/$MWIKI_NAME" ]; then
+		err "Wiki already exists: $dir/$MWIKI_NAME"
+		return 1
+	fi
+
+	# create the directory that we're going to build this wiki into at the
+	# same time as we build the wiki itself
+	mkdir -p "$dir/$MWIKI_NAME/build"
+
+	mwiki_require
+
+	touch "$MWIKI_PATH/Tupfile.ini"
+
+	cat > "$MWIKI_PATH/Tupfile"  <<- EOF
+
+	!m_build = |> mwiki generate %f %o |> 
+
+	: foreach *.mw |> !m_build |> build/%B.html
+
+	EOF
+
+}
+
+mwiki_tup(){
+	mwiki_require
+	cd "$MWIKI_PATH"
+	tup "$@"
+}
+
+mwiki_edit(){
+	mwiki_require
+	local entry="$1" ; shift
+	local entry_path="$MWIKI_PATH/$entry.mw"
+
+	if [ ! -f "$entry_path" ]; then
+		read -p "'$entry' doesn't exist, create it? (Y/n) "
+		if [ "$REPLY" != "n" -o "$REPLY" != "N" ]; then
+			touch "$entry_path"
+		fi
+	fi
+
+	if [ ! -f "$entry_path" ]; then
+		return 1
+	fi
+
+	sensible-editor "$entry_path"
+
+	mwiki_tup
+}
+
+mwiki_gen(){
+	cat "$1" > "$2"
+}
+
+mwiki_browse(){
+	mwiki_require
+	# use w3m
+}
+
+mwiki_search(){
+	mwiki_require
+	# use search++
+}
+
+mwiki(){
+
+	if [ $# -lt 1 ]; then
+		mwiki_usage
+		exit 1
+	fi
+
+	local command="$1" ; shift
+
+	case "$command" in
+		init) mwiki_init "$@" ;;
+		edit) mwiki_edit "$@" ;;
+		browse) mwiki_browse "$@" ;;
+		search) mwiki_search "$@" ;;
+		# things for building
+		monitor) mwiki_tup monitor ;;
+		build) mwiki_tup ;;
+		generate) mwiki_gen "$@" ;;
+		*) 
+			echo "error: '$command' is not a mwiki command"
+			usage
+			return 1
+		;;
+	esac
+
+}
+
+mwiki "$@"
