@@ -54,6 +54,12 @@ mwiki_init(){
 
 }
 
+mwiki_entries(){
+	mwiki_require
+	cd "$MWIKI_PATH"
+	ls | grep '\.mw$' | sed 's/\.mw$//'
+}
+
 mwiki_tup(){
 	mwiki_require
 	local old="$PWD"
@@ -86,15 +92,19 @@ mwiki_edit(){
 mwiki_gen(){
 	# this function is used to generate any sort of markdown/format file
 	# to html output.
-	cat "$1" > "$2"
+	cat "$1" |
+	# [#@]			# match a '#' or '@' both are ok
+	#     ( [a-zA-Z_]+ )	# capture the part that matters
+	sed 's_[#@]\([a-zA-Z_]\+\)_<a href="\1.html">&</a>_' |
+	cat > "$2"
 }
 
 mwiki_browse(){
 	mwiki_require
-	mwiki_tup
-	cd "$MWIKI_PATH"
+	cd "$MWIKI_PATH/build/"
 
 	# use w3m
+	w3m "./${1}.html"
 }
 
 mwiki_search(){
@@ -102,6 +112,7 @@ mwiki_search(){
 	cd "$MWIKI_PATH"
 
 	# use search++
+	search++ "$@"
 }
 
 mwiki(){
@@ -116,6 +127,7 @@ mwiki(){
 	case "$command" in
 		init) mwiki_init "$@" ;;
 		edit) mwiki_edit "$@" ;;
+		entries) mwiki_entries ;;
 		browse) mwiki_browse "$@" ;;
 		search) mwiki_search "$@" ;;
 		# things for building
