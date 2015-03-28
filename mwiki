@@ -3,10 +3,6 @@
 MWIKI_NAME=".mwiki.d"
 MWIKI_PATH=""
 
-mwiki_usage(){
-	echo "mwiki <command> ..."
-}
-
 err(){
 	echo -e "\e[31m" "$@" "\e[0m" >> /dev/stderr
 }
@@ -60,6 +56,17 @@ mwiki_entries(){
 	ls | grep '\.mw$' | sed 's/\.mw$//'
 }
 
+mwiki_build(){
+	mwiki_require
+	if [ $# -gt 0 ]; then
+		if [ "$1" = "-d" -o "$1" = "--daemon" ]; then
+			mwiki_tup monitor --autoupdate --autoparse
+		fi
+	else
+		mwiki_tup
+	fi
+}
+
 mwiki_tup(){
 	mwiki_require
 	local old="$PWD"
@@ -94,8 +101,8 @@ mwiki_gen(){
 	# to html output.
 	cat "$1" |
 	# [#@]			# match a '#' or '@' both are ok
-	#     ( [a-zA-Z_]+ )	# capture the part that matters
-	sed 's_[#@]\([a-zA-Z_]\+\)_<a href="\1.html">&</a>_' |
+	#     ( [a-zA-Z_0-9]+ )	# capture the part that matters
+	sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_' |
 	cat > "$2"
 }
 
@@ -131,16 +138,26 @@ mwiki(){
 		browse) mwiki_browse "$@" ;;
 		search) mwiki_search "$@" ;;
 		# things for building
-		monitor) mwiki_tup monitor ;;
-		build) mwiki_tup ;;
+		build) mwiki_build "$@" ;;
 		generate) mwiki_gen "$@" ;;
 		*) 
 			echo "error: '$command' is not a mwiki command"
-			usage
+			mwiki_usage
 			return 1
 		;;
 	esac
-
 }
+
+mwiki_usage(){
+	echo "mwiki <command> ..."
+	echo "  init [d]   - initialize a mwiki instance in the current director or \$d"
+	echo "  edit <n>   - edit the entry called \$n"
+	echo "  entries    - list all of the wiki entries"
+	echo "  browse <n> - open the wiki entry called \$n"
+	echo "  search <s> - invoke swish++ to search for \$s"
+	echo "  build [-d|--daemon] - start a build daemon that autoupdates on edits"
+	echo "  generate <i> <o>    - run file generation for \$i and output to \$o"
+}
+
 
 mwiki "$@"
