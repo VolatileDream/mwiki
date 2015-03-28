@@ -44,7 +44,7 @@ mwiki_init(){
 
 	: foreach *.mw |> !m_build |> build/%B.html
 
-	: *.mw |> mwiki generate @ %o |> build/@.html
+	: *.mw |> mwiki generate '-' %o |> build/-.html
 
 	: *.mw |> index++ -e text:* *.mw |> swish++.index
 
@@ -116,17 +116,18 @@ mwiki_edit(){
 mwiki_gen(){
 
 	case "$1" in
-		@)
+		-)
 			echo -e "<h1> Meta </h1><hr>"
 			mwiki_entries | sed 's_^.*$_<a href="&.html">&</a>_'
 		;;
 		*)
+			echo -e "<h1> $1 </h1><hr>"
 			# this function is used to generate any sort of markdown/format file
 			# to html output.
 			cat "$1" |
 			# [#@]			# match a '#' or '@' both are ok
 			#     ( [a-zA-Z_0-9]+ )	# capture the part that matters
-			sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_'
+			sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_g'
 		;;
 	esac |
 	awk '{ print $0 "<br>" }' |
@@ -137,7 +138,7 @@ mwiki_browse(){
 	mwiki_require
 	cd "$MWIKI_PATH/build/"
 
-	local entry="./@.html"
+	local entry="./-.html"
 	if [ $# -gt 0 ]; then
 		entry="./$1.html"
 	fi
