@@ -111,6 +111,7 @@ mwiki_gen(){
 	# [#@]			# match a '#' or '@' both are ok
 	#     ( [a-zA-Z_0-9]+ )	# capture the part that matters
 	sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_' |
+	awk '{ print $0 "<br>" }' |
 	cat > "$2"
 }
 
