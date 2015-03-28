@@ -114,9 +114,18 @@ mwiki_edit(){
 }
 
 mwiki_gen(){
-
+	mwiki_require
 	case "$1" in
 		-)
+			# because tup thinks it's so smart by avoiding to count
+			# all of the entries as dependencies for the meta file
+			# because we never actually open them for reading. So
+			# this forces tup to make them our dependencies. :(
+			mwiki_entries | 
+			while read line ; do
+				cat "$MWIKI_PATH/$line.mw" > /dev/null
+			done
+
 			echo -e "<h1> Meta </h1><hr>"
 			mwiki_entries | sed 's_^.*$_<a href="&.html">&</a>_'
 		;;
