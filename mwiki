@@ -163,8 +163,10 @@ mwiki_usage(){
 	echo "  entries    - list all of the wiki entries"
 	echo "  browse <n> - open the wiki entry called \$n"
 	echo "  search <s> - invoke swish++ to search for \$s"
-	echo "  build [-d|--daemon] - start a build daemon that autoupdates on edits"
-	echo "  generate <i> <o>    - run file generation for \$i and output to \$o"
+	echo "  generate <i> <o> - run file generation for \$i and output to \$o"
+	echo "  build [-d|--daemon [-a|--auto]] - start a build"
+	echo "    -d, --daemon - file monitoring daemon, makes builds faste"
+	echo "    -a, --autoupdates - make the daemon rebuild on edits"
 }
 
 
