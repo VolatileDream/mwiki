@@ -59,8 +59,13 @@ mwiki_entries(){
 mwiki_build(){
 	mwiki_require
 	if [ $# -gt 0 ]; then
+		local ARGS=""
+		if [ "$2" = "-a" -o "$2" = "--auto" ]; then
+			# have tup auto update things on change
+			ARGS="--autoupdate --autoparse"
+		fi
 		if [ "$1" = "-d" -o "$1" = "--daemon" ]; then
-			mwiki_tup monitor --autoupdate --autoparse
+			mwiki_tup monitor --foreground $ARGS
 		fi
 	else
 		mwiki_tup
@@ -69,6 +74,9 @@ mwiki_build(){
 
 mwiki_tup(){
 	mwiki_require
+
+	# check if tup is running
+
 	local old="$PWD"
 	cd "$MWIKI_PATH"
 	tup "$@"
