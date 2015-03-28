@@ -44,6 +44,8 @@ mwiki_init(){
 
 	: foreach *.mw |> !m_build |> build/%B.html
 
+	: *.mw |> mwiki generate @ %o |> build/@.html
+
 	: *.mw |> index++ -e text:* *.mw |> swish++.index
 
 	EOF
@@ -88,6 +90,13 @@ mwiki_edit(){
 	local entry="$1" ; shift
 	local entry_path="$MWIKI_PATH/$entry.mw"
 
+	# we use it as a meta entry later...
+	# and no link to it could be created.
+	if [ -z "$entry" ]; then
+		err "Can't create the empty entry"
+		return 1
+	fi
+
 	if [ ! -f "$entry_path" ]; then
 		read -p "'$entry' doesn't exist, create it? (Y/n) "
 		if [ "$REPLY" != "n" -o "$REPLY" != "N" ]; then
@@ -105,12 +114,21 @@ mwiki_edit(){
 }
 
 mwiki_gen(){
-	# this function is used to generate any sort of markdown/format file
-	# to html output.
-	cat "$1" |
-	# [#@]			# match a '#' or '@' both are ok
-	#     ( [a-zA-Z_0-9]+ )	# capture the part that matters
-	sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_' |
+
+	case "$1" in
+		@)
+			echo -e "<h1> Meta </h1><hr>"
+			mwiki_entries | sed 's_^.*$_<a href="&.html">&</a>_'
+		;;
+		*)
+			# this function is used to generate any sort of markdown/format file
+			# to html output.
+			cat "$1" |
+			# [#@]			# match a '#' or '@' both are ok
+			#     ( [a-zA-Z_0-9]+ )	# capture the part that matters
+			sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_'
+		;;
+	esac |
 	awk '{ print $0 "<br>" }' |
 	cat > "$2"
 }
@@ -119,8 +137,13 @@ mwiki_browse(){
 	mwiki_require
 	cd "$MWIKI_PATH/build/"
 
+	local entry="./@.html"
+	if [ $# -gt 0 ]; then
+		entry="./$1.html"
+	fi
+
 	# use w3m
-	w3m "./${1}.html"
+	w3m "$entry"
 }
 
 mwiki_search(){
