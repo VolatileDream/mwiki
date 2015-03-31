@@ -184,7 +184,7 @@ mwiki_search(){
 	mwiki_require
 	cd "$MWIKI_PATH"
 
-	# use search++
+	# use swish++
 	search++ "$@"
 }
 
