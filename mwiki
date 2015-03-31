@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MWIKI_NAME=".mwiki.d"
+MWIKI_NAME="mwiki.d"
 MWIKI_PATH=""
 
 err(){
@@ -11,7 +11,7 @@ mwiki_require(){
 	# set the wiki path and look it up at the same time
 	MWIKI_PATH=`lookup $MWIKI_NAME`
 
-	if [ $? -ne 0 ]; then
+	if [ -z "$MWIKI_PATH" ]; then
 		err "No mwiki wiki was found."
 		err "Run: 'mwiki init' to create one."
 		exit 1
