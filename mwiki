@@ -224,7 +224,7 @@ mwiki_usage(){
 	echo "  generate <i> <o> - run file generation for \$i and output to \$o"
 	echo "  build [-d|--daemon [-a|--auto]] - start a build"
 	echo "    -d, --daemon - file monitoring daemon, makes builds faste"
-	echo "    -a, --autoupdates - make the daemon rebuild on edits"
+	echo "    -a, --auto - make the daemon rebuild on edits"
 }
 
 
