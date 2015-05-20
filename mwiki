@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MWIKI_NAME="mwiki.d"
+MWIKI_NAME=".mwiki"
 MWIKI_PATH=""
 
 err(){
@@ -9,28 +9,52 @@ err(){
 
 mwiki_require(){
 	# set the wiki path and look it up at the same time
-	MWIKI_PATH=`lookup $MWIKI_NAME`
+	local dir=`lookup $MWIKI_NAME`
 
-	if [ -z "$MWIKI_PATH" ]; then
+	if [ -z "$dir" ]; then
 		err "No mwiki wiki was found."
 		err "Run: 'mwiki init' to create one."
 		exit 1
 	fi
+
+	# this will set MWIKI_PATH to be not the empty string
+	source "$dir"
+
+	if [ -z "$MWIKI_PATH" ]; then
+		err "Bad mwiki instance: $dir"
+		exit 1
+	else
+		if [ "${MWIKI_PATH:0:1}" != "/" ]; then
+			# make path relative to project root
+			MWIKI_PATH="${dir%$MWIKI_NAME}${MWIKI_PATH}"
+		fi
+	fi
 }
 
 mwiki_init(){
-	local dir="."
-
-	if [ $# -gt 0 ]; then
-		dir="$1" ; shift
+	if [ $# -lt 1 ]; then
+		err "Insufficient arguments to init"
+		err "Missing placement directory"
+		exit 1
 	fi
 
-	if [ -d "$dir/$MWIKI_NAME" ]; then
-		err "Wiki already exists: $dir/$MWIKI_NAME"
+	local dir="$1" ; shift
+	local name="$dir"
+
+	if [ $# -gt 0 ]; then
+		name="$1" ; shift
+	fi
+
+	local MWIKI_CONF="$dir/$MWIKI_NAME"
+
+	if [ -f "$MWIKI_CONF" ]; then
+		err "Wiki already exists: $MWIKI_CONF"
 		return 1
 	fi
 
-	MWIKI_PATH="$dir/$MWIKI_NAME"
+	MWIKI_PATH="$name"
+
+	echo "MWIKI_PATH=$MWIKI_PATH" > "$MWIKI_CONF"
 
 	# create the directory that we're going to build this wiki into at the
 	# same time as we build the wiki itself
@@ -216,7 +240,7 @@ mwiki(){
 
 mwiki_usage(){
 	echo "mwiki <command> ..."
-	echo "  init [d]   - initialize a mwiki instance in the current director or \$d"
+	echo "  init d [n] - initialize a mwiki instance in directory \$d, store it in directory \$n (default to the same as \$d)"
 	echo "  edit <n>   - edit the entry called \$n"
 	echo "  entries    - list all of the wiki entries"
 	echo "  browse <n> - open the wiki entry called \$n"
