@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MWIKI_NAME="mwiki.d"
+MWIKI_NAME=".mwiki"
 MWIKI_PATH=""
 
 err(){
@@ -9,12 +9,25 @@ err(){
 
 mwiki_require(){
 	# set the wiki path and look it up at the same time
-	MWIKI_PATH=`lookup $MWIKI_NAME`
+	local dir=`lookup $MWIKI_NAME`
 
-	if [ -z "$MWIKI_PATH" ]; then
+	if [ -z "$dir" ]; then
 		err "No mwiki wiki was found."
 		err "Run: 'mwiki init' to create one."
 		exit 1
+	fi
+
+	# this will set MWIKI_PATH to be not the empty string
+	source "$dir"
+
+	if [ -z "$MWIKI_PATH" ]; then
+		err "Bad mwiki instance: $dir"
+		exit 1
+	else
+		if [ "${MWIKI_PATH:0:1}" != "/" ]; then
+			# make path relative to project root
+			MWIKI_PATH="${dir%$MWIKI_NAME}${MWIKI_PATH}"
+		fi
 	fi
 }
 
