@@ -32,18 +32,29 @@ mwiki_require(){
 }
 
 mwiki_init(){
-	local dir="."
-
-	if [ $# -gt 0 ]; then
-		dir="$1" ; shift
+	if [ $# -lt 1 ]; then
+		err "Insufficient arguments to init"
+		err "Missing placement directory"
+		exit 1
 	fi
 
-	if [ -d "$dir/$MWIKI_NAME" ]; then
-		err "Wiki already exists: $dir/$MWIKI_NAME"
+	local dir="$1" ; shift
+	local name="$dir"
+
+	if [ $# -gt 0 ]; then
+		name="$1" ; shift
+	fi
+
+	local MWIKI_CONF="$dir/$MWIKI_NAME"
+
+	if [ -f "$MWIKI_CONF" ]; then
+		err "Wiki already exists: $MWIKI_CONF"
 		return 1
 	fi
 
-	MWIKI_PATH="$dir/$MWIKI_NAME"
+	MWIKI_PATH="$name"
+
+	echo "MWIKI_PATH=$MWIKI_PATH" > "$MWIKI_CONF"
 
 	# create the directory that we're going to build this wiki into at the
 	# same time as we build the wiki itself
@@ -229,7 +240,7 @@ mwiki(){
 
 mwiki_usage(){
 	echo "mwiki <command> ..."
-	echo "  init [d]   - initialize a mwiki instance in the current director or \$d"
+	echo "  init d [n] - initialize a mwiki instance in directory \$d, store it in directory \$n (default to the same as \$d)"
 	echo "  edit <n>   - edit the entry called \$n"
 	echo "  entries    - list all of the wiki entries"
 	echo "  browse <n> - open the wiki entry called \$n"
