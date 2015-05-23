@@ -4,5 +4,5 @@ include_rules
 # this rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are unfortunately order dependant.
 
-: *.mw |> plugin.d/missing/run > %o |> build/~missing.html <meta>
+: *.mw |> plugin.d/missing/run > %o |> build/~missing.html $(ROOT)/<meta>
 
