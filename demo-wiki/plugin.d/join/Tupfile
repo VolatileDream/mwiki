@@ -1,0 +1,10 @@
+
+include_rules
+
+# these rules are used to join all of the different bits of a page into
+# a single page, it is important that any plugin adds it's parts of
+# generated pages to the build/meta/<%B> group.
+
+!join = | build/meta/<%B> |> $(ROOT)/plugin.d/join/run %B > %o |>
+: foreach $(ROOT)/*.mw |> !join |> build/%B.html
+

@@ -1,0 +1,7 @@
+
+# Never need gitignore
+.gitignore
+
+# For absolute pathing where required
+ROOT=$(TUP_CWD)
+

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+entry="$1" ; shift
+
+cat plugin.d/join/order |
+while read plugin ; do
+cat "build/meta/${entry}.${plugin}"
+done
