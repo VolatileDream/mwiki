@@ -1,10 +1,12 @@
+# Never need gitignore
+.gitignore
 
 # The base plugin is used to generate the base page from the wiki entry
 # itself, strictly doing the conversion between wiki syntax and html.
-include plugin.d/base/Tupfile
+include plugin.d/base/rules
 
 
-include plugin.d/join/Tupfile
+include plugin.d/join/rules
 # implementation detail:
 # join expects that plugins will be added to the
 # plugin.d/join/order file, to indicate the order to join the fragments
@@ -16,14 +18,15 @@ include plugin.d/join/Tupfile
 # fragment to the build/meta/<%B> group. This is the only way the join
 # plugin will find the page fragments.
 
-include plugin.d/mentions/Tupfile
+include plugin.d/mentions/rules
+include plugin.d/missing/rules
 
 # mwiki plugins that autogenerate pages are expected to generate pages
 # that start with a '~', this means that the meta index page will be
 # able to find them all and list them. As well as being put in the 
 # <meta> group to ensure dependencies are correctly ordered.
 
-include plugin.d/index/Tupfile
+include plugin.d/index/rules
 
 # By convention, the index plugin creates '#.html' which is the default
 # entry point of mwiki.
