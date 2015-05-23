@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# mwiki expects plugins to be added to the .mwiki.d/Tupfile, which will ensure
-# that the get run and are kept up to date when files are changed.
-
-# Here's the missing entry:
-
-## : *.mw |> plugins/missing.sh %o |> build/~missing.html
-
 # mwiki runs plugins inside it's .mwkik.d/ directory.
 MWIKI_DIR="."
 
@@ -40,5 +33,6 @@ run(){
 	 sed 's_^.*$_<a href="./&.html">&</a>_' ) |
 	awk '{ print $0 " <br>" }'
 }
+
 
 run "$@"
