@@ -38,11 +38,13 @@ mwiki_gen_plugin(){
 
 	cat > "$MWIKI_PATH/plugin.d/base/Tupfile" <<- EOF
 
+	include_rules
+
 	# Standard page generation, should probably be replaced with an actual
 	# markdown -> html converter.
 
 	# Note that it is mandatory that page parts get added to build/meta/<%B>
-	: foreach *.mw |> plugin.d/base/run %f > %o|> build/meta/%B.base build/meta/<%B>
+	: foreach \$(ROOT)/*.mw |> \$(ROOT)/plugin.d/base/run %f > %o |> build/meta/%B.base build/meta/<%B>
 
 	EOF
 
@@ -67,10 +69,14 @@ mwiki_index_plugin(){
 	mkdir -p "$MWIKI_PATH/plugin.d/index/"
 
 	cat > "$MWIKI_PATH/plugin.d/index/Tupfile" <<- EOF
+
+	include_rules
+
 	# this rule MUST go after all plugin generated pages, because tup
 	# declarations with wild cards are unfortunately order dependant.
 
-	: *.mw | <meta> |> plugin.d/index/run > %o |> build/#.html
+	: \$(ROOT)/*.mw | <meta> |> \$(ROOT)/plugin.d/index/run > %o |> build/#.html
+
 	EOF
 
 	cat > "$MWIKI_PATH/plugin.d/index/run" <<- EOF
@@ -114,17 +120,19 @@ mwiki_join_plugin(){
 
 	cat > "$MWIKI_PATH/plugin.d/join/Tupfile" <<- EOF
 	
+	include_rules
+
 	# these rules are used to join all of the different bits of a page into
 	# a single page, it is important that any plugin adds it's parts of
 	# generated pages to the build/meta/<%B> group.
 
-	!join = | build/meta/<%B> |> plugin.d/join/run %B > %o |>
-	: foreach *.mw |> !join |> build/%B.html
+	!join = | build/meta/<%B> |> \$(ROOT)/plugin.d/join/run %B > %o |>
+	: foreach \$(ROOT)/*.mw |> !join |> build/%B.html
 
 	EOF
 
 	cat > "$MWIKI_PATH/plugin.d/join/run" <<- EOF
-	#!/bin/sh
+	#!/usr/bin/env sh
 	entry="\$1" ; shift
 
 	cat plugin.d/join/order |
@@ -175,8 +183,6 @@ mwiki_init(){
 	touch "$MWIKI_PATH/Tupfile.ini"
 	cat > "$MWIKI_PATH/Tupfile"  <<- EOF
 
-	.gitignore
-
 	# The base plugin is used to generate the base page from the wiki entry
 	# itself, strictly doing the conversion between wiki syntax and html.
 	include plugin.d/base/Tupfile
@@ -203,6 +209,14 @@ mwiki_init(){
 
 	# By convention, the index plugin creates '#.html' which is the default
 	# entry point of mwiki.
+	EOF
+	cat > "$MWIKI_PATH/Tuprules.tup" <<- EOF
+
+	# Never need gitignore
+	.gitignore
+
+	# For absolute pathing where required
+	ROOT=\$(TUP_CWD)
 
 	EOF
 }
