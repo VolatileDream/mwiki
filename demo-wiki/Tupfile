@@ -16,6 +16,8 @@ include plugin.d/join/Tupfile
 # fragment to the build/meta/<%B> group. This is the only way the join
 # plugin will find the page fragments.
 
+include plugin.d/mentions/Tupfile
+
 # mwiki plugins that autogenerate pages are expected to generate pages
 # that start with a '~', this means that the meta index page will be
 # able to find them all and list them. As well as being put in the 
