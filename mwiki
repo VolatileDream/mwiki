@@ -60,8 +60,9 @@ mwiki_init(){
 	# same time as we build the wiki itself
 	mkdir -p "$MWIKI_PATH/build/meta/"
 
-	mkdir -p "$MWIKI_PATH/plugins.d/"
-	touch "$MWIKI_PATH/plugins"
+	mkdir -p "$MWIKI_PATH/plugin.d/"
+	touch "$MWIKI_PATH/plugin-order"
+	echo "base" >> "$MWIKI_PATH/plugin-order"
 
 	touch "$MWIKI_PATH/Tupfile.ini"
 
@@ -69,10 +70,9 @@ mwiki_init(){
 
 	.gitignore
 
-	: foreach plugins.d/*/ |> include plugins.d/Tupfile |>
-
 	# Standard page generation, should probably be replaced with an actual
 	# markdown -> html converter.
+
 	: foreach *.mw |> mwiki generate %f > %o|> build/meta/%B.base build/meta/<%B>
 
 	: *.mw |> index++ -e text:* %f |> swish++.index
@@ -84,16 +84,21 @@ mwiki_init(){
 
 	# START MWIKI PLUGINS
 
+	# example:
+	# include plugin.d/<plugin>/Tupfile
+
 	# END MWIKI PLUGINS
 
 	# these rules are used to join all of the different bits of a page into
 	# a single page, it is important that any plugin adds it's parts of
 	# generated pages to the build/meta/<%B> group.
-	!join = | build/meta/<%B> |> mwiki join %B > %o |>
+
+	!join = | plugin-order build/meta/<%B> |> mwiki join %B > %o |>
 	: foreach *.mw |> !join |> build/%B.html
 
 	# this rule MUST go after all plugin generated pages, because tup
 	# declarations with wild cards are unfortunately order dependant.
+
 	: *.mw | <meta> |> mwiki generate '#' > %o |> build/#.html
 
 	EOF
@@ -204,8 +209,12 @@ mwiki_gen(){
 
 mwiki_join(){
 	mwiki_require
-	# TODO plugins
-	cat "build/meta/$1"*
+	local entry="$1" ; shift
+
+	cat plugin-order |
+	while read plugin ; do
+		cat "build/meta/${entry}.${plugin}"
+	done
 }
 
 mwiki_browse(){
