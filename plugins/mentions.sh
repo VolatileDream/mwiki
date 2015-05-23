@@ -23,11 +23,10 @@ page_mentions(){
 
 run(){
 	local page="$1" ; shift
-	local output="$1" ; shift
 	( echo "<h2>Mentions</h2><hr>" ;
 	  page_mentions "$page" |
 	   sed 's_^.*$_<a href="./&.html">&</a>_' ) |
-	awk '{ print $0 " <br>" }' >> "$output"
+	awk '{ print $0 " <br>" }'
 }
 
 run "$@"

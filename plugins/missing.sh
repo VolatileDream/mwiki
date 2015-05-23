@@ -35,11 +35,10 @@ missing_pages(){
 }
 
 run(){
-	output="$1" ; shift
 	( echo "<h1>Missing Pages</h1><hr>" ;
 	 missing_pages |
 	 sed 's_^.*$_<a href="./&.html">&</a>_' ) |
-	awk '{ print $0 " <br>" }' > "$output"
+	awk '{ print $0 " <br>" }'
 }
 
 run "$@"
