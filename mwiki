@@ -58,7 +58,10 @@ mwiki_init(){
 
 	# create the directory that we're going to build this wiki into at the
 	# same time as we build the wiki itself
-	mkdir -p "$MWIKI_PATH/build"
+	mkdir -p "$MWIKI_PATH/build/meta/"
+
+	mkdir -p "$MWIKI_PATH/plugins.d/"
+	touch "$MWIKI_PATH/plugins"
 
 	touch "$MWIKI_PATH/Tupfile.ini"
 
@@ -66,30 +69,34 @@ mwiki_init(){
 
 	.gitignore
 
-	!m_build = |> mwiki generate %f %o |> 
+	: foreach plugins.d/*/ |> include plugins.d/Tupfile |>
+
+	# Standard page generation, should probably be replaced with an actual
+	# markdown -> html converter.
+	: foreach *.mw |> mwiki generate %f > %o|> build/meta/%B.base build/meta/<%B>
 
 	: *.mw |> index++ -e text:* %f |> swish++.index
 
 	# mwiki plugins that autogenerate pages are expected to generate pages
 	# that start with a '~', this means that the meta index page will be
-	# able to find them all and list them.
+	# able to find them all and list them. As well as being put in the 
+	# <meta> group.
 
 	# START MWIKI PLUGINS
 
-	# this is the general mwiki build command, it will need to be modified
-	# (because of the way tup behaves) if you want to output extra data to
-	# the build/%B.html page.
-
-	: foreach *.mw |> !m_build |> build/%B.html
-
 	# END MWIKI PLUGINS
+
+	# these rules are used to join all of the different bits of a page into
+	# a single page, it is important that any plugin adds it's parts of
+	# generated pages to the build/meta/<%B> group.
+	!join = | build/meta/<%B> |> mwiki join %B > %o |>
+	: foreach *.mw |> !join |> build/%B.html
 
 	# this rule MUST go after all plugin generated pages, because tup
 	# declarations with wild cards are unfortunately order dependant.
-	: *.mw | build/~*.html |> mwiki generate '#' %o |> build/#.html
+	: *.mw | <meta> |> mwiki generate '#' > %o |> build/#.html
 
 	EOF
-
 }
 
 mwiki_entries(){
@@ -192,8 +199,13 @@ mwiki_gen(){
 			sed 's_[#@]\([a-zA-Z_0-9]\+\)_<a href="\1.html">&</a>_g'
 		;;
 	esac |
-	awk '{ print $0 "<br>" }' |
-	cat > "$2"
+	awk '{ print $0 "<br>" }'
+}
+
+mwiki_join(){
+	mwiki_require
+	# TODO plugins
+	cat "build/meta/$1"*
 }
 
 mwiki_browse(){
@@ -235,6 +247,7 @@ mwiki(){
 		# things for building
 		build) mwiki_build "$@" ;;
 		generate) mwiki_gen "$@" ;;
+		join) mwiki_join "$@" ;;
 		*) 
 			echo "error: '$command' is not a mwiki command"
 			mwiki_usage
@@ -250,10 +263,12 @@ mwiki_usage(){
 	echo "  entries    - list all of the wiki entries"
 	echo "  browse <n> - open the wiki entry called \$n"
 	echo "  search <s> - invoke swish++ to search for \$s"
-	echo "  generate <i> <o> - run file generation for \$i and output to \$o"
 	echo "  build [-d|--daemon [-a|--auto]] - start a build"
 	echo "    -d, --daemon - file monitoring daemon, makes builds faste"
 	echo "    -a, --auto - make the daemon rebuild on edits"
+	echo " --- the following are used during page generation ---"
+	echo "  generate <i> - run file generation for \$i"
+	echo "  join <i>     - join all generated files for entry \$i"
 }
 
 
