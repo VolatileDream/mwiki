@@ -27,7 +27,15 @@ missing_pages(){
 	uniq -u
 }
 
+fix_dependencies(){
+	pages |
+	while read entry; do
+		cat "$MWIKI_DIR/$entry.mw" > /dev/null
+	done
+}
+
 run(){
+	fix_dependencies
 	( echo "<h1>Missing Pages</h1><hr>" ;
 	 missing_pages |
 	 sed 's_^.*$_<a href="./&.html">&</a>_' ) |
