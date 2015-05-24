@@ -308,7 +308,6 @@ mwiki(){
 		edit) mwiki_edit "$@" ;;
 		entries) mwiki_entries ;;
 		browse) mwiki_browse "$@" ;;
-		search) mwiki_search "$@" ;;
 		# things for building
 		build) mwiki_build "$@" ;;
 		*) 
@@ -325,7 +324,6 @@ mwiki_usage(){
 	echo "  edit <n>   - edit the entry called \$n"
 	echo "  entries    - list all of the wiki entries"
 	echo "  browse <n> - open the wiki entry called \$n"
-	echo "  search <s> - invoke swish++ to search for \$s"
 	echo "  build [-d|--daemon [-a|--auto]] - start a build"
 	echo "    -d, --daemon - file monitoring daemon, makes builds faste"
 	echo "    -a, --auto - make the daemon rebuild on edits"
