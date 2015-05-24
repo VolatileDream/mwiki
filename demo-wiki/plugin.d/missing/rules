@@ -6,4 +6,4 @@ include_rules
 
 !each_missing = |> plugin.d/missing/run %B > %o |>
 : foreach *.mw |> !each_missing |> build/meta/%B.missing
-: build/meta/*.missing |> ^ cat build/meta/*.missing > %o^ cat %f | sort -u > %o |> build/~missing.html <meta>
+: build/meta/*.missing |> ^ plugin.d/missing/join build/meta/*.missing > %o^ plugin.d/missing/join %f > %o |> build/~missing.html <meta>

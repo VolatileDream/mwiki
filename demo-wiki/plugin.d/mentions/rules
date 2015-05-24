@@ -5,5 +5,5 @@ include_rules
 # a single page, it is important that any plugin adds it's parts of
 # generated pages to the build/meta/<%B> group.
 
-: foreach *.mw |> plugin.d/mentions/run %B > %o |> build/meta/%B.mentions build/meta/<%B>
+: foreach *.mw | *.mw |> plugin.d/mentions/run %B > %o |> build/meta/%B.mentions build/meta/<%B>
 
