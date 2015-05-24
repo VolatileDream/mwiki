@@ -1,10 +1,6 @@
 
-include_rules
-
 # this rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are unfortunately order dependant.
 
 : *.mw | <html> <meta> |> plugin.d/index/run > %o |> build/#.html
-
-# : *.mw build/*.html | $(ROOT)/<html> $(ROOT)/<meta> |> plugin.d/index/run > %o |> build/#.html
 
