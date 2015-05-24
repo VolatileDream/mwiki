@@ -4,5 +4,6 @@ include_rules
 # this rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are unfortunately order dependant.
 
-: *.mw |> plugin.d/missing/run > %o |> build/~missing.html $(ROOT)/<meta>
-
+!each_missing = |> plugin.d/missing/run %B > %o |>
+: foreach *.mw |> !each_missing |> build/meta/%B.missing
+: build/meta/*.missing |> ^ cat build/meta/*.missing > %o^ cat %f | sort -u > %o |> build/~missing.html <meta>
