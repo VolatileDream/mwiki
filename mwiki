@@ -49,7 +49,7 @@ mwiki_gen_plugin(){
 	
 	cat > "$MWIKI_PATH/plugin.d/base/run" <<- EOF
 	(
-		echo "<h1> \$1 </h1><hr>"
+		echo "<h1> \${1%.mw} </h1><hr>"
 		# this function is used to generate any sort of markdown/format file
 		# to html output.
 		cat "\$1" |
