@@ -25,7 +25,7 @@ __mwiki_completion(){
 
 	case ${base} in
 		# things that don't complete:
-		init|entries|generate|search)
+		init|entries|generate)
 			opts=""
 			;;
 		edit|browse)
@@ -38,7 +38,7 @@ __mwiki_completion(){
 			;;
 		*)
 			# Add the defaults
-			opts="init edit entries browse search build"
+			opts="init edit entries browse build"
 			;;
 	esac
 
