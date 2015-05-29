@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
 MWIKI_NAME=".mwiki"
-MWIKI_PATH=""
 
 err(){
 	echo -e "\e[31m" "$@" "\e[0m" >> /dev/stderr
 }
 
 mwiki_require(){
+	# Path already set.
+	if [ -n "$MWIKI_PATH" ]; then
+		return 0
+	fi
 	# set the wiki path and look it up at the same time
 	local dir=`lookup $MWIKI_NAME`
 
