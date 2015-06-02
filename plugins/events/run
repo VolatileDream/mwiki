@@ -26,7 +26,7 @@ run(){
 
 	cat "$entry.mw"		|
 	 grep -E '^!event'	|
-	 sed "s_^!event\(-start\|-end\)\?_event\\1 2015/06/01_"	|
+	 sed "s_^!event\(-start\|-end\)\?_event\\1 ${date}_"	|
 	 while read line ; do
 		process-line $line
 	 done
