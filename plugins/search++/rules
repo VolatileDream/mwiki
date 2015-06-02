@@ -4,4 +4,8 @@ include_rules
 # this rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are unfortunately order dependant.
 
+# Important note:
+# For some reason search++ has problems with reading the .gitignore file, the
+# only way around this seems to be to not use the .gitignore directive for Tup.
+
 : | *.mw |> ^ search++ index *.mw > %o^ index++ --pattern 'text:*.mw' --no-recurse --index-file %o . |> build/swish++.index <meta>
