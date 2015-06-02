@@ -26,7 +26,6 @@ run-query(){
 	rm "$tmp"
 
 	# display the entries
-	echo "$dates"
 	journal view $dates
 }
 
