@@ -1,0 +1,7 @@
+
+include_rules
+
+# this rule MUST go after all plugin generated pages, because tup
+# declarations with wild cards are unfortunately order dependant.
+
+: | *.mw |> ^ search++ index *.mw > %o^ index++ --pattern 'text:*.mw' --no-recurse --index-file %o . |> build/swish++.index <meta>
