@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+join(){
+	local dir="$1" ; shift
+	local ext="$1" ; shift
+
+	find "$dir" -type f -name "*$ext" -print0 |
+	 xargs --null cat	|
+	 LC_ALL=C sort		| # since dates are at the back, this actually groups event start + end dates
+	 while read event ; do
+		content=` echo $event | sed 's_^\\(.*\\) [^ ]*$_\\1_' `
+		date=` echo $event | sed 's_.* \\([^ ]*\\)$_\\1_' `
+		echo "prev: $p_content --- $p_date" >> /dev/stderr
+		echo "$content --- $date" >> /dev/stderr
+
+		# print this twice so that it gets removed by the uniq check
+		if [ -n "$p_date" ]; then
+			echo " - ${p_date} $p_content"
+		fi
+
+		case "$date" in
+			*-~)
+				p_content="$content"
+				p_date="$date"
+				;;
+			~-*)
+				if [ "$content" = "$p_content" ]; then
+					echo " - ${p_date%%-~}-${date##~-} $content"
+					p_date=""
+				else
+					echo " - ${p_date}-~ $p_content"
+					echo " - ~-${date} $content"
+					echo "Error matching $content" >> /dev/stderr
+				fi
+				;;
+			*)
+				if [ -n "$p_date" ]; then
+					echo " - ${p_date} $p_content"
+					p_date=""
+				fi
+				echo " - $date $content"
+				;;
+		esac
+		# print this twice so that it gets removed by the uniq check
+		if [ -n "$p_date" ]; then
+			echo " - ${p_date} $p_content"
+		fi
+	 done			|
+	 uniq --unique		|
+	 awk '{ print $0 " <br> " }'
+}
+
+join "$@"

@@ -1,0 +1,9 @@
+
+include_rules
+
+# this rule MUST go after all plugin generated pages, because tup
+# declarations with wild cards are unfortunately order dependant.
+
+!each_event = |> plugin.d/events/run %B > %o |>
+: foreach *.mw |> !each_event |> build/meta/%B.events
+: | build/meta/*.events |> ^ plugin.d/events/join build/meta/*.events > %o^ plugin.d/events/join build/meta events > %o |> build/~events.html <meta>
