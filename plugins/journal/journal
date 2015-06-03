@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 # configuration file
-CONFIG="$HOME/.config/journal-config.ini"
-CONFIG="./journal-config.ini"
+CONFIG="$HOME/.config/mwiki-journal-config.ini"
 
 # get conch stuff for config
 # available at: https://github.com/VolatileDream/dot-files/blob/master/conch
@@ -219,6 +218,7 @@ query(){
 			err "Can not find plugin '$source' to query it."
 		fi
 	else
+		cd "$JOURNAL" # setup for the query
 		# pass all the arguments along
 		"$executable" "$@"
 	fi
