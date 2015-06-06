@@ -185,7 +185,8 @@ mwiki_init(){
 
 	# create the directory that we're going to build this wiki into at the
 	# same time as we build the wiki itself
-	mkdir -p "$MWIKI_PATH/build/meta/"
+	mkdir -p "$MWIKI_PATH/build/"
+	mkdir -p "$MWIKI_PATH/partial/"
 
 	echo "MWIKI_PATH=$MWIKI_PATH" > "$MWIKI_CONF"
 
