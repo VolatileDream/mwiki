@@ -21,10 +21,11 @@ process-line(){
 
 run(){
 	local entry="$1"; shift
+	local file="$1" ; shift
 
 	local date=` echo "$entry" | sed 's_-_/_g' `
 
-	cat "$entry.mw"		|
+	cat "$file"		|
 	 grep -E '^!event'	|
 	 sed "s_^!event\(-start\|-end\)\?_event\\1 ${date}_"	|
 	 while read line ; do
