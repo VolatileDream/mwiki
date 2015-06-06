@@ -3,7 +3,7 @@
 run(){
 	local entry="$1" ; shift
 	local file="$1" ; shift
-	cat "$ile"		|
+	cat "$file"		|
 	grep -E '^!quotes '	|
 	# remove the quote specifier
 	sed 's_^!quotes \+__'	|
