@@ -5,12 +5,13 @@
 	# all of the entries as dependencies for the meta file
 	# because we never actually open them for reading. So
 	# this forces tup to make them our dependencies. :(
-	ls		|
+	ls "$1"		|
 	grep -E 'mw$'	|
+	sed 's_.[^/]/__'|
 	sed 's_.mw$__'	|
 	sort -u		|
 	while read line ; do
-		cat "$line.mw" > /dev/null
+		cat "$1/$line.mw" > /dev/null
 		echo "$line"
 	done		|
 	sed 's_^.*$_<a href="&.html">&</a>_'

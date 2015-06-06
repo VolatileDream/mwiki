@@ -1,5 +1,5 @@
 
 OUTPUT := build
-
+ENTRIES := entries
 PARTIAL := partial
 

@@ -4,7 +4,7 @@ entry="$1" ; shift
 cat plugin.d/join/order |
 while read plugin ; do
 	case "$plugin" in
-		base) cat "${entry}.mw" ;;
+		base) cat "entries/${entry}.mw" ;;
 		*) cat "partial/${entry}.${plugin}" ;;
 	esac
 done

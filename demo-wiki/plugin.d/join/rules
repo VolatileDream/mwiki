@@ -6,5 +6,5 @@ include_rules
 
 !join = | plugin.d/join/order $(PARTIAL)/<%B> |> plugin.d/join/run %B > %o |>
 
-: foreach *.mw |> !join |> $(PARTIAL)/%B.mw
+: foreach $(ENTRIES)/*.mw |> !join |> $(PARTIAL)/%B.mw
 
