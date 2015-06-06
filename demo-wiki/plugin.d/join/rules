@@ -1,9 +1,10 @@
+include_rules
 
 # these rules are used to join all of the different bits of a page into
 # a single page, it is important that any plugin adds it's parts of
-# generated pages to the build/meta/<%B> group.
+# generated pages to the $(PARTIAL)/<%B> group.
 
-!join = | plugin.d/join/order build/meta/<%B> |> plugin.d/join/run %B > %o |>
+!join = | plugin.d/join/order $(PARTIAL)/<%B> |> plugin.d/join/run %B > %o |>
 
-: foreach *.mw |> !join |> build/%B.html <html>
+: foreach *.mw |> !join |> $(PARTIAL)/%B.mw
 

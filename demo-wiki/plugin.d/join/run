@@ -3,5 +3,8 @@ entry="$1" ; shift
 
 cat plugin.d/join/order |
 while read plugin ; do
-cat "build/meta/${entry}.${plugin}"
+	case "$plugin" in
+		base) cat "${entry}.mw" ;;
+		*) cat "partial/${entry}.${plugin}" ;;
+	esac
 done

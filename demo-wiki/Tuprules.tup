@@ -1,0 +1,5 @@
+
+OUTPUT := build
+
+PARTIAL := partial
+
