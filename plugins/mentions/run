@@ -14,8 +14,7 @@ run(){
 	local page="$1" ; shift
 	( echo "<h2>Mentions</h2><hr>" ;
 	  page_mentions "$page" |
-	   sed 's_^.*$_<a href="./&.html">&</a>_' ) |
-	awk '{ print $0 " <br>" }'
+	   sed 's_^.*$_#&_' )
 }
 
 run "$@"

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+run(){
+	local entry="$1" ; shift
+	cat "$entry.mw"		|
+	grep -E '^!quotes '	|
+	# remove the quote specifier
+	sed 's_^!quotes \+__'	|
+	# add a starting space for subsequent quote lines
+	sed 's_\\n_<br>\&nbsp;_g'	|
+	awk '{ print "<p>" $0 "</p>" }'
+}
+
+run "$@"

@@ -1,7 +1,11 @@
+include_rules
 
 # Standard page generation, should probably be replaced with an actual
 # markdown -> html converter.
 
-# Note that it is mandatory that page parts get added to build/meta/<%B>
-: foreach *.mw |> plugin.d/base/run %f > %o |> build/meta/%B.base build/meta/<%B>
+# Note that it is mandatory that page parts get added to $(PARTIAL)/<%B>
+
+!generate_html = | $(PARTIAL)/<%B> |> plugin.d/base/run %f > %o |>
+
+: foreach $(PARTIAL)/*.mw |> !generate_html |> $(OUTPUT)/%B.html <html>
 
