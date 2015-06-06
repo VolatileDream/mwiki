@@ -2,7 +2,8 @@
 
 run(){
 	local entry="$1" ; shift
-	cat "$entry.mw"		|
+	local file="$1" ; shift
+	cat "$file"		|
 	grep -E '^!quotes '	|
 	# remove the quote specifier
 	sed 's_^!quotes \+__'	|

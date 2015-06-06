@@ -3,7 +3,7 @@ include_rules
 # this rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are unfortunately order dependant.
 
-!each_event = |> plugin.d/events/run %B > %o |>
-: foreach *.mw |> !each_event |> $(PARTIAL)/%B.events
+!each_event = |> plugin.d/events/run %B %f > %o |>
+: foreach $(ENTRIES)/*.mw |> !each_event |> $(PARTIAL)/%B.events
 
 : | $(PARTIAL)/*.events |> ^ plugin.d/events/join $(PARTIAL)/*.events > %o^ plugin.d/events/join $(PARTIAL) events > %o |> $(PARTIAL)/~events.mw <meta>

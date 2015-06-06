@@ -5,8 +5,8 @@ MWIKI_DIR="."
 
 page_mentions(){
 	local page="$1" ; shift
-	grep --files-with-match --ignore-case "[#@]$page" "$MWIKI_DIR/"*.mw |
-	 sed "s_^$MWIKI_DIR/__" | sed 's_.mw$__'
+	grep --files-with-match --ignore-case "[#@]$page" "$MWIKI_DIR/entries/"* |
+	 sed "s_^$MWIKI_DIR/entries/__" | sed 's_.mw$__'
 	 sort -u
 }
 
