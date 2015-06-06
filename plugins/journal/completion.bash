@@ -52,8 +52,10 @@ __mwiki_journal(){
 			;;
 		# things that complete to build-* entries
 		query)
-			path="$(journal config journal location)/plugin.d/"
-			opts=`find "$path" -type f | grep -E 'query$' | sed "s_${path}__" | sed 's_/query$__' `
+			if [ $COMP_CWORD -lt 3 ]; then
+				path="$(journal config journal location)/plugin.d/"
+				opts=`find "$path" -type f | grep -E 'query$' | sed "s_${path}__" | sed 's_/query$__' `
+			fi
 			;;
 		# settings that we use mwiki completion for
 		build)
