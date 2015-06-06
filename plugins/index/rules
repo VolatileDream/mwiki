@@ -1,0 +1,7 @@
+include_rules
+
+# this rule MUST go after all plugin generated pages, because tup
+# declarations with wild cards are unfortunately order dependant.
+
+: | $(ENTRIES)/*.mw <meta> |> plugin.d/index/run $(ENTRIES) > %o |> $(OUTPUT)/#.html
+

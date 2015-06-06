@@ -1,0 +1,10 @@
+include_rules
+
+# these rules are used to join all of the different bits of a page into
+# a single page, it is important that any plugin adds it's parts of
+# generated pages to the $(PARTIAL)/<%B> group.
+
+!join = | plugin.d/join/order $(PARTIAL)/<%B> |> plugin.d/join/run %B > %o |>
+
+: foreach $(ENTRIES)/*.mw |> !join |> $(PARTIAL)/%B.mw
+
