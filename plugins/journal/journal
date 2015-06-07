@@ -191,7 +191,7 @@ view(){
 		 awk "$SCRIPT" |
 		while read entry ; do
 			echo "--------------- ${entry}"
-			cat "$JOURNAL/$entry.mw"
+			cat "$JOURNAL/entries/$entry.mw"
 			echo
 		done | sensible-pager
 	fi
