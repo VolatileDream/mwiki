@@ -191,7 +191,7 @@ view(){
 		 awk "$SCRIPT" |
 		while read entry ; do
 			echo "--------------- ${entry}"
-			cat "$JOURNAL/$entry.mw"
+			cat "$JOURNAL/entries/$entry.mw"
 			echo
 		done | sensible-pager
 	fi
@@ -237,6 +237,7 @@ extension(){
 
 	if [ -e "$COM" -a -x "$COM" ]; then
 		rval=0
+		cd "$JOURNAL"
 		"$COM" "$@"
 		local exit_status=$?
 		if [ $exit_status -ne 0 ]; then
