@@ -4,7 +4,7 @@ pages_linked_to(){
 	local entry="$1" ; shift
 	local file="$1" ; shift
 	cat "$file"				|
-	grep -o '[#@]\([a-zA-Z_0-9]\+\)'	|
+	grep -o '[#@]\([a-zA-Z_0-9\-]\+\)'	|
 	tr -d '#@'				|
 	sort -u
 }
