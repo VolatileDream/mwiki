@@ -163,7 +163,7 @@ mwiki_edit(){
 	else
 		if [ ! -f "$entry_path" ]; then
 			read -p "'$entry' doesn't exist, create it? (Y/n) "
-			if [ "$REPLY" != "n" -o "$REPLY" != "N" ]; then
+			if [ "$REPLY" != "n" -a "$REPLY" != "N" ]; then
 				touch "$entry_path"
 			fi
 		fi
