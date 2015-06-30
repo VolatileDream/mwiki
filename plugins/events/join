@@ -1,57 +1,57 @@
 #!/usr/bin/env bash
 
+process-line(){
+
+	local type="$1" ; shift
+	local date="$1" ; shift
+
+	case "$type" in
+		event|event-start)
+			echo "- $date $@"
+			;;
+		event-end)
+			echo "$@"
+			return 1
+			;;
+	esac
+}
+
 join(){
 	local dir="$1" ; shift
 	local ext="$1" ; shift
 
-	find "$dir" -type f -name "*$ext" -print0 |
-	 xargs --null cat	|
-	 LC_ALL=C sort		| # since dates are at the back, this actually groups event start + end dates
+	local temp=`mktemp`
+
+	find "$dir" -type f -name "*$ext" -print0	|
+	 LC_ALL=C sort --zero-terminated		|
+	 xargs --null cat				|
 	 while read event ; do
-		content=` echo $event | sed 's_^\\(.*\\) [^ ]*$_\\1_' `
-		date=` echo $event | sed 's_.* \\([^ ]*\\)$_\\1_' `
 
-		#echo "prev: $p_date === $p_content" >> /dev/stderr
-		#echo "now: $date === $content" >> /dev/stderr
+		local type="${event%% *}"
+		event="${event#* }"		#remove the type
+		local date="${event%% *}"
+		local content="${event#* }"
 
-		# print this twice so that it gets removed by the uniq check
-		if [ -n "$p_date" ]; then
-			echo " - ${p_date} $p_content"
-		fi
+		#echo "$type === $date === $content" >> /dev/stderr
 
-		case "$date" in
-			*-~)
-				p_content="$content"
-				p_date="$date"
+		case $type in
+			event)
+				echo "- $date $content" >> "$temp"
 				;;
-			~-*)
-				if [ -n "$p_date" -a "$content" = "$p_content" ]; then
-					echo " - ${p_date%%-~}-${date##~-} $content"
-				else
-					if [ -n "$p_date" ]; then
-						echo " - ${p_date} $p_content"
-						p_date=""
-					fi
-					echo " - ${date} $content"
-					echo "Error matching $content" >> /dev/stderr
-				fi
+			event-start)
+				echo "- $date-~ $content" >> "$temp"
 				;;
-			*)
-				if [ -n "$p_date" ]; then
-					echo " - ${p_date} $p_content"
-					p_date=""
-				fi
-				echo " - $date $content"
+			event-end)
+				sed --in-place --expression "s_^- \(..../../..\)-~ ${content}_- \1-${date} ${content}_" "$temp"
 				;;
 		esac
-		# print this twice so that it gets removed by the uniq check
-		if [ -n "$p_date" ]; then
-			echo " - ${p_date} $p_content"
-		fi
-	 done			|
-	 uniq --unique		|
+	 done
+
+	cat "$temp"	
 	 LC_ALL=C sort		|
 	 awk '{ print $0 " <br> " }'
+
+	rm "$temp"
 }
 
 join "$@"
