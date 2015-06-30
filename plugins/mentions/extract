@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# mwiki (through TUP) runs plugins inside it's mwiki directory.
+MWIKI_DIR="."
+
+page_mentions(){
+	local db="$1" ; shift
+	local page="$1" ; shift
+
+	cat "$db"		|
+	 grep "${page}\$"	|
+	 sed 's_ :: .*__'	|
+	 sort -u
+}
+
+run(){
+	local db="$1" ; shift
+	local page="$1" ; shift
+	( echo "<h2>Mentions</h2><hr>" ;
+	  page_mentions "$db" "$page" |
+	   sed 's_^.*$_#&_' )
+}
+
+run "$@"
+
