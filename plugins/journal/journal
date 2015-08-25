@@ -76,6 +76,18 @@ update(){
 		return 0
 	fi
 
+	local today=0
+
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--today) today=1 ;;
+			*)
+				err "Bad argument to journal update"
+				return 1
+		esac
+		shift
+	done
+
 	local FORMAT="%Y-%m-%d"
 
 	# last entry date
@@ -83,10 +95,10 @@ update(){
 	# current date
 	local NOW="$(date +$FORMAT)"
 
-	if [ "$NOW" != "$LAST" ]; then
+	if [ "$NOW" != "$LAST" ] || [ $today -ne 0 ]; then
 
-		if _wiki entries | grep -E "^$LAST\$" ; then
-			echo "An entry already exists for $LAST..."
+		if _wiki entries | grep -E "^$LAST\$" > /dev/null ; then
+			echo "An entry already exists for '$LAST'"
 			echo " Not updating journal."
 			return 1
 		fi
@@ -282,7 +294,8 @@ else
 		query)
 			query "$@" ;;
 		update)
-			update ;;
+			# assume we want to push the today entry into the log
+			update --today ;;
 		view)
 			view "$@" ;;
 		help|-h|--help)
