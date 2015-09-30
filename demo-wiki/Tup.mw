@@ -1,1 +1,0 @@
-@Tup is a build tool like @Make, except it can use @inotify to detect updates and is stricter about build dependencies and relationships.

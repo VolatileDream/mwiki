@@ -120,18 +120,30 @@ mwiki_entries(){
 
 mwiki_build(){
 	mwiki_require
-	if [ $# -gt 0 ]; then
-		local ARGS=""
-		if [ "$2" = "-a" -o "$2" = "--auto" ]; then
-			# have tup auto update things on change
-			ARGS="--autoupdate --autoparse"
-		fi
-		if [ "$1" = "-d" -o "$1" = "--daemon" ]; then
-			mwiki_tup monitor --foreground $ARGS
-		fi
-	else
-		mwiki_tup
-	fi
+
+	local -a ARGS
+	local index=0
+
+	while [ $# -gt 0 ]; do
+		case $1 in
+			-a|--auto)
+				ARGS[$index]="--autoupdate"
+				index=$((index+1))
+				ARGS[$index]="--autoparse"
+				;;
+			-d|--daemon)
+				ARGS[$index]="monitor"
+				index=$((index+1))
+				ARGS[$index]="foreground"
+				;;
+			# unrecognized arguments are just passed through
+			*) ARGS[$index]="$1" ;;
+		esac
+		index=$((index+1))
+		shift
+	done
+
+	mwiki_tup ${ARGS[@]}
 }
 
 mwiki_tup(){

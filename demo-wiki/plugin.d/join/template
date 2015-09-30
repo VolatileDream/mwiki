@@ -1,0 +1,2 @@
+{{ cat entries/$ENTRY.mw }}
+{{ plugin.d/mentions/extract partial/core-mentions $ENTRY }}

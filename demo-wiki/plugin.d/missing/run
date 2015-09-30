@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 pages_linked_to(){
-	local entry="$1" ; shift
-	local file="$1" ; shift
-	cat "$file"				|
+	mwiki entries				|
+	while read entry ; do
+		cat "entries/$entry.mw"
+	done					|
 	grep -o '[#@]\([a-zA-Z_0-9\-]\+\)'	|
 	tr -d '#@'				|
 	sort -u
@@ -15,9 +16,7 @@ pages(){
 }
 
 run(){
-	local page="$1" ; shift
-	local file="$1" ; shift
-	( pages_linked_to "$page" "$file" ; pages ; pages ) |
+	( pages_linked_to ; pages ; pages ) |
 	# join the two lists
 	sort |
 	# show only unique entries, which gives us the pages that are missing

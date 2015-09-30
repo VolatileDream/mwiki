@@ -6,4 +6,4 @@ include_rules
 
 : $(ENTRIES)/*.mw |> plugin.d/mentions/run > %o |> $(PARTIAL)/core-mentions plugin.d/<join>
 
-: foreach $(ENTRIES)/*.mw | $(PARTIAL)/core-mentions |> plugin.d/mentions/extract $(PARTIAL)/core-mentions %B > %o |> $(PARTIAL)/%B.mentions $(PARTIAL)/<%B>
+#: foreach $(ENTRIES)/*.mw | $(PARTIAL)/core-mentions |> plugin.d/mentions/extract $(PARTIAL)/core-mentions %B > %o |> $(PARTIAL)/%B.mentions $(PARTIAL)/<%B>

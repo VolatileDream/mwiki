@@ -21,13 +21,6 @@ include plugin.d/events/rules
 include plugin.d/quotes/rules
 include plugin.d/search++/rules
 
-# mwiki plugins that autogenerate pages are expected to generate pages
-# that start with a '~', this means that the meta index page will be
-# able to find them all and list them. As well as being put in the 
-# <meta> group to ensure dependencies are correctly ordered.
-
-include plugin.d/index/rules
-
 # By convention, the index plugin creates '#.html' which is the default
 # entry point of mwiki.
 
@@ -40,3 +33,10 @@ include plugin.d/join/rules
 # The base plugin is used to generate the base page from the wiki entry
 # itself, strictly doing the conversion between wiki syntax and html.
 include plugin.d/base/rules
+
+# mwiki plugins that autogenerate pages are expected to generate pages
+# that start with a '~', this means that the meta index page will be
+# able to find them all and list them. As well as being put in the 
+# <meta> group to ensure dependencies are correctly ordered.
+
+include plugin.d/index/rules

@@ -4,17 +4,9 @@
 MWIKI_DIR="."
 
 page_mentions(){
-	local page="$1" ; shift
-	grep --files-with-match --ignore-case "[#@]$page" "$MWIKI_DIR/entries/"* |
-	 sed "s_^$MWIKI_DIR/entries/__" | sed 's_.mw$__'
+	grep --recursive --only-matching '[#@][a-zA-Z0-9_\-]\+' "$MWIKI_DIR/entries/" |
+	 sed "s_^$MWIKI_DIR/entries/__" | sed 's_.mw:_ :: _'
 	 sort -u
 }
 
-run(){
-	local page="$1" ; shift
-	( echo "<h2>Mentions</h2><hr>" ;
-	  page_mentions "$page" |
-	   sed 's_^.*$_#&_' )
-}
-
-run "$@"
+page_mentions

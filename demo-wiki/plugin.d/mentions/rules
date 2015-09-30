@@ -4,5 +4,6 @@ include_rules
 # a single page, it is important that any plugin adds it's parts of
 # generated pages to the $(PARTIAL)/<%B> group.
 
-: foreach $(ENTRIES)/*.mw | $(ENTRIES)/*.mw |> plugin.d/mentions/run %B > %o |> $(PARTIAL)/%B.mentions $(PARTIAL)/<%B>
+: $(ENTRIES)/*.mw |> plugin.d/mentions/run > %o |> $(PARTIAL)/core-mentions plugin.d/<join>
 
+#: foreach $(ENTRIES)/*.mw | $(PARTIAL)/core-mentions |> plugin.d/mentions/extract $(PARTIAL)/core-mentions %B > %o |> $(PARTIAL)/%B.mentions $(PARTIAL)/<%B>
