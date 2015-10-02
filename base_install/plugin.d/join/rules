@@ -4,7 +4,7 @@ include_rules
 # a single page, it is important that any plugin adds it's parts of
 # generated pages to the $(PARTIAL)/<%B> group.
 
-!join = | plugin.d/join/template plugin.d/<join> |> ^ plugin.d/join/run %B > %o^ export ENTRY=%B ; extruder < plugin.d/join/template > %o |>
+!join = | plugin.d/<join> |> plugin.d/join/run %B > %o |>
 
 : foreach $(ENTRIES)/*.mw |> !join |> $(PARTIAL)/%B.mw
 
