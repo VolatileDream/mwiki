@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-LOC="$(journal config journal location)"
-
-FILE="$LOC/build/swish++.index"
-
-search++ --index-file "$FILE" -D | awk '/^[^ ]/ { print }'
