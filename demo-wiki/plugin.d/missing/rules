@@ -1,8 +1,0 @@
-include_rules
-
-# this rule MUST go after all plugin generated pages, because tup
-# declarations with wild cards are unfortunately order dependant.
-
-!each_missing = |> plugin.d/missing/run %B %f > %o |>
-: foreach $(ENTRIES)/*.mw |> !each_missing |> $(PARTIAL)/%B.missing $(PARTIAL)/<%B>
-: $(PARTIAL)/*.missing |> ^ plugin.d/missing/join $(PARTIAL)/*.missing > %o^ plugin.d/missing/join %f > %o |> $(PARTIAL)/~missing.mw <meta>

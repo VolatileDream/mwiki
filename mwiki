@@ -57,59 +57,12 @@ mwiki_init(){
 
 	MWIKI_PATH="$name"
 
-	# create the directory that we're going to build this wiki into at the
-	# same time as we build the wiki itself
-	mkdir -p "$MWIKI_PATH/build/"
-	mkdir -p "$MWIKI_PATH/partial/"
-
-	touch "$MWIKI_PATH/Tupfile.ini"
+	mkdir -p "$MWIKI_PATH"
 
 	echo "MWIKI_PATH=$MWIKI_PATH" > "$MWIKI_CONF"
 
-	cat > "$MWIKI_PATH/Tuprules.tup" <<- EOF
-	PARTIAL=partial
-	ENTRIES=entries
-	OUTPUT=build
-	EOF
-	cat > "$MWIKI_PATH/Tupfile"  <<- EOF
-	include_rules
-
-	ifeq (\$PARTIAL,)
-		error PARTIAL was not defined.
-	endif
-	ifeq (\$OUTPUT,)
-		error OUTPUT was not defined.
-	endif
-	ifeq (\$ENTRIES,)
-		error ENTRIES was not defined.
-	endif
-
-	# plugins that generate page fragments are expected to conform to
-	# the convention that join has setup. This means that fragments should
-	# be generated into \$PARTIAL/%B.\$plugin-name, as well as adding the
-	# fragment to the \$PARTIAL/<%B> group. This is the only way the join
-	# plugin will find the page fragments.
-
-	# mwiki plugins that autogenerate pages are expected to generate pages
-	# that start with a '~', this means that the meta index page will be
-	# able to find them all and list them. As well as being put in the 
-	# <meta> group to ensure dependencies are correctly ordered.
-
-	include plugin.d/join/rules
-	# implementation detail:
-	# join expects that plugins will be added to the
-	# plugin.d/join/order file, to indicate the order to join the fragments
-	# in.
-
-	# By convention, the index plugin creates '#.html' which is the default
-	# entry point of mwiki.
-	include plugin.d/index/rules
-
-	# The base plugin is used to generate the base page from the wiki entry
-	# itself, strictly doing the conversion between wiki syntax and html.
-	# It expects files that end with .mw in \$PARTIAL/, and converts them.
-	include plugin.d/base/rules
-	EOF
+	echo "Please download http://github.com/volatiledream/mwiki/blob/master/base.zip and"
+	echo " extract it into '$MWIKI_PATH'."
 }
 
 mwiki_entries(){
@@ -120,18 +73,30 @@ mwiki_entries(){
 
 mwiki_build(){
 	mwiki_require
-	if [ $# -gt 0 ]; then
-		local ARGS=""
-		if [ "$2" = "-a" -o "$2" = "--auto" ]; then
-			# have tup auto update things on change
-			ARGS="--autoupdate --autoparse"
-		fi
-		if [ "$1" = "-d" -o "$1" = "--daemon" ]; then
-			mwiki_tup monitor --foreground $ARGS
-		fi
-	else
-		mwiki_tup
-	fi
+
+	local -a ARGS
+	local index=0
+
+	while [ $# -gt 0 ]; do
+		case $1 in
+			-a|--auto)
+				ARGS[$index]="--autoupdate"
+				index=$((index+1))
+				ARGS[$index]="--autoparse"
+				;;
+			-d|--daemon)
+				ARGS[$index]="monitor"
+				index=$((index+1))
+				ARGS[$index]="foreground"
+				;;
+			# unrecognized arguments are just passed through
+			*) ARGS[$index]="$1" ;;
+		esac
+		index=$((index+1))
+		shift
+	done
+
+	mwiki_tup ${ARGS[@]}
 }
 
 mwiki_tup(){

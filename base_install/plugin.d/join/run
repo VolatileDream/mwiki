@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+ENTRY="$1" ; shift
+
+cat entries/$ENTRY.mw
+
+plugin.d/mentions/extract partial/core-mentions $ENTRY
+
