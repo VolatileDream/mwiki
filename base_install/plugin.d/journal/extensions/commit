@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cd "$(journal config journal location)"
+
 git diff --quiet
 
 if [ $? -ne 0 ]; then
