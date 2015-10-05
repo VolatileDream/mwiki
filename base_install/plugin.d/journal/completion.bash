@@ -32,6 +32,15 @@ __mwiki_journal_view(){
 	return 0
 }
 
+__mwiki_journal_since(){
+	local cur base opts
+	if [ ${COMP_CWORD} -eq 2 -o ${COMP_CWORD} -eq 4 ]; then
+		__mwiki_journal_view
+	else
+		COMPREPLY=(until)
+	fi
+}
+
 __mwiki_journal_config(){
 	local cur base opts
 	COMPREPLY=()
@@ -85,11 +94,8 @@ __mwiki_journal(){
 				unset MWIKI_PATH
 			fi
 			;;
-		config)
-			__mwiki_journal_config
-			;;
-		view)
-			__mwiki_journal_view
+		config|view|since)
+			__mwiki_journal_$base
 			;;
 		*)
 			if [ -n "$journal_loc" ] ; then

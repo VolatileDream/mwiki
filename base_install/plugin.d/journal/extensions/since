@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+entries_after(){
+	# awk script is _so_ much faster than bash process fork.
+	read -d '' script <<- awk_script
+		BEGIN {
+			since = mktime("${1//-/ } 00 00 00")
+			until = mktime("${2//-/ } 00 00 00")
+		}
+		{
+			line=\$0 ;
+			gsub("-", " ");
+			date = mktime( \$0 " 00 00 00" )
+			if ( date >= since ){
+				if( until < 0 || date < until ){
+					print(line)
+				}
+			}
+		}
+	awk_script
+	journal entries 			|
+	 grep --extended-regexp '^[0-9\-]+$'	|
+	 awk "$script"
+}
+
+if [ $# -gt 0 ]; then
+	since="$1" ; shift
+	if [ $# -gt 0 ]; then
+		if [ "$1" = "until" ]; then
+			shift
+		fi
+		if [ $# -gt 0 ]; then
+			until="$1" ; shift
+		fi
+	fi
+	journal view $(entries_after "$since" "$until")
+else
+	echo "error: 'journal since' requires a date argument" >> /dev/stderr
+fi
