@@ -122,11 +122,14 @@ mwiki_edit(){
 		return 1
 	fi
 
+    # used for a hack around tup behaviour
+	local created=0
+
 	# check if std in is a tty
 	if ! tty > /dev/null ; then
+		[ -f "$entry_path" ] || created=1
 		cat >> "$entry_path"
 	else
-		local created=0
 		if [ ! -f "$entry_path" ]; then
 			read -p "'$entry' doesn't exist, create it? (Y/n) "
 			if [ "$REPLY" != "n" -a "$REPLY" != "N" ]; then
@@ -140,12 +143,11 @@ mwiki_edit(){
 		fi
 
 		sensible-editor "$entry_path"
+    fi
 
-		# this is an ugly hack to deal with tup incorrectly updating #.html
-		echo $created
-		if [ $created -eq 1 ]; then
-			rm "${MWIKI_PATH}/build/#.html" "${MWIKI_PATH}/build/~*"
-		fi
+	# this is an ugly hack to deal with tup incorrectly updating #.html
+	if [ $created -eq 1 ]; then
+		rm "${MWIKI_PATH}/build/#.html" "${MWIKI_PATH}/build/~*"
 	fi
 
 	mwiki_tup
