@@ -75,28 +75,24 @@ mwiki_build(){
 	mwiki_require
 
 	local -a ARGS
-	local index=0
 
 	while [ $# -gt 0 ]; do
 		case $1 in
 			-a|--auto)
-				ARGS[$index]="--autoupdate"
-				index=$((index+1))
-				ARGS[$index]="--autoparse"
+				ARGS+=("--autoupdate")
+				ARGS+=("--autoparse")
 				;;
 			-d|--daemon)
-				ARGS[$index]="monitor"
-				index=$((index+1))
-				ARGS[$index]="foreground"
+				ARGS+=("monitor")
+				ARGS+=("foreground")
 				;;
 			# unrecognized arguments are just passed through
-			*) ARGS[$index]="$1" ;;
+			*) ARGS+=("$1") ;;
 		esac
-		index=$((index+1))
 		shift
 	done
 
-	mwiki_tup ${ARGS[@]}
+	mwiki_tup "${ARGS[@]}"
 }
 
 mwiki_tup(){
@@ -200,6 +196,5 @@ mwiki_usage(){
 	echo "    -d, --daemon - file monitoring daemon, makes builds faste"
 	echo "    -a, --auto - make the daemon rebuild on edits"
 }
-
 
 mwiki "$@"
