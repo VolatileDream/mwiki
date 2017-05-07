@@ -3,5 +3,5 @@ include_rules
 # this rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are unfortunately order dependant.
 
-: $(PARTIAL)/*.mw <meta> |> plugin.d/index/run $(PARTIAL) > %o |> $(OUTPUT)/#.html
+: partial/*.mw <meta> |> plugin.d/index/run partial > %o |> build/#.html
 

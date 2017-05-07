@@ -1,13 +1,5 @@
 include_rules
 
-ifeq ($PARTIAL,)
-	error PARTIAL was not defined.
-endif
-
-ifeq ($OUTPUT,)
-	error PARTIAL was not defined.
-endif
-
 # other plugins that generate page fragments are expected to conform to
 # the convention that join has setup. This means that fragments should
 # be generated into build/meta/%B.$plugin-name, as well as adding the

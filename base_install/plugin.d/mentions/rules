@@ -2,7 +2,7 @@ include_rules
 
 # these rules are used to join all of the different bits of a page into
 # a single page, it is important that any plugin adds it's parts of
-# generated pages to the $(PARTIAL)/<%B> group.
+# generated pages to the partial/<%B> group.
 
-: $(ENTRIES)/*.mw |> plugin.d/mentions/run > %o |> $(PARTIAL)/core-mentions plugin.d/<join>
+: entries/*.mw |> plugin.d/mentions/run > %o |> partial/core-mentions plugin.d/<join>
 

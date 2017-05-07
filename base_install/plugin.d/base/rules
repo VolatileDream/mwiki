@@ -3,9 +3,9 @@ include_rules
 # Standard page generation, should probably be replaced with an actual
 # markdown -> html converter.
 
-# Note that it is mandatory that page parts get added to $(PARTIAL)/<%B>
+# Note that it is mandatory that page parts get added to partial/<%B>
 
-!generate_html = | $(PARTIAL)/<%B> |> plugin.d/base/run %f > %o |>
+!generate_html = | partial/<%B> |> plugin.d/base/run %f > %o |>
 
-: foreach $(PARTIAL)/*.mw |> !generate_html |> $(OUTPUT)/%B.html <html>
+: foreach partial/*.mw |> !generate_html |> build/%B.html <html>
 

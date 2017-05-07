@@ -7,4 +7,4 @@ include_rules
 # For some reason search++ has problems with reading the .gitignore file, the
 # only way around this seems to be to not use the .gitignore directive for Tup.
 
-: $(ENTRIES)/*.mw |> ^ search++ index *.mw > %o^ index++ --pattern 'text:*.mw' --no-recurse --index-file %o "$(ENTRIES)" |> $(OUTPUT)/swish++.index <meta>
+: entries/*.mw |> ^ search++ index *.mw > %o^ index++ --pattern 'text:*.mw' --no-recurse --index-file %o "entries" |> build/swish++.index <meta>
