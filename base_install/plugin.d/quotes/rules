@@ -1,8 +1,5 @@
 include_rules
 
-# this rule MUST go after all plugin generated pages, because tup
-# declarations with wild cards are unfortunately order dependant.
-
 !each_quotes = |> plugin.d/quotes/run %B %f > %o |>
 : foreach entries/*.mw |> !each_quotes |> partial/%B.quotes
 : | partial/*.quotes |> ^ join partial/*.quotes > %o^ find "partial" -name '*.quotes' -print0 | xargs --null cat > %o |> partial/~quotes.mw <meta>

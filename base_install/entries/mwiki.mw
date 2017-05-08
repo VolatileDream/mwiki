@@ -1,3 +1,3 @@
 @mwiki is a fancy type of wiki. It wraps tools like @Tup, and @w3m to provide a very clean and minimal wiki experience.
 
-@mwiki uses a simple #LinkingFormat that very closely resembles ABunchOfCammelCaseWords, but is subltly different.
+@mwiki uses a simple #LinkingFormat that very closely resembles ABunchOfCamelCaseWords, but is subtly different.

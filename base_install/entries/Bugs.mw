@@ -1,0 +1,16 @@
+
+Notice something that didn't work the way you think it should? Go to https://github.com/VolatileDream/mwiki/issues/ and report it! If you can answer the following questions with as much detail as possible, it'll really help fixing the problem:
+
+ * What happened?
+ ** Step by step break down of the @mwiki commands you executed.
+ ** Any relevant non-mwiki commands that were run (did you edit #Tupfile, or some other thing outside of @mwiki?)
+
+ * What did you expect to happen?
+ ** Where did the steps start going wrong?
+ ** Is there more than one thing that has gone wrong?
+ ** What output did you expect from each part?
+
+ * Propose a fix, what should've happened instead?
+ ** We aren't mind readers, if you say "it should work" we don't know what you mean by 'work'.
+ ** If you have an idea about when or how things should happen, say so.
+

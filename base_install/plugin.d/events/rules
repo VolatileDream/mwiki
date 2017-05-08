@@ -1,8 +1,5 @@
 include_rules
 
-# this rule MUST go after all plugin generated pages, because tup
-# declarations with wild cards are unfortunately order dependant.
-
 !each_event = |> plugin.d/events/run %B %f > %o |>
 : foreach entries/*.mw |> !each_event |> partial/%B.events
 

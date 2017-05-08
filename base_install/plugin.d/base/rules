@@ -1,7 +1,7 @@
 include_rules
 
 # Standard page generation, should probably be replaced with an actual
-# markdown -> html converter.
+# markdown -> html converter, this is a shim similar to Markdown.
 
 # Note that it is mandatory that page parts get added to partial/<%B>
 

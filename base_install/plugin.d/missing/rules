@@ -1,6 +1,6 @@
 include_rules
 
-# this rule MUST go after all plugin generated pages, because tup
-# declarations with wild cards are unfortunately order dependant.
+# Functionally similar to `mentions` this generates a similar list of mentions
+# but then discards mentions of pages that exist.
 
 : entries/*.mw |> plugin.d/missing/run > %o |> partial/~missing.mw <meta>

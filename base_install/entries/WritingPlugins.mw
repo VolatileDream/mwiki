@@ -1,7 +1,7 @@
 
 # So you want to write an @mwiki plugin...
 
-Writting @mwiki plugins is fairly simple, as they usually consist of two parts.
+Writing @mwiki plugins is fairly simple, as they usually consist of two parts.
 
 The first part is the @Tup rules that say what input is used to generate what output.
 

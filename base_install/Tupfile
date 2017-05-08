@@ -18,12 +18,13 @@ include plugin.d/search++/rules
 
 include plugin.d/join/rules
 # implementation detail:
-# join expects that plugins will be added to the
-# plugin.d/join/order file, to indicate the order to join the fragments
-# in.
+# join expects that plugins will be added to the plugin.d/join/order
+# file, to indicate the order to join the fragments in.
 
 # The base plugin is used to generate the base page from the wiki entry
 # itself, strictly doing the conversion between wiki syntax and html.
+# This rule MUST go after all plugin generated pages, because tup
+# declarations with wild cards are order dependant.
 include plugin.d/base/rules
 
 # mwiki plugins that autogenerate pages are expected to generate pages
