@@ -1,5 +1,5 @@
 
-The @JoinPlugin takes
+The @JoinPlugin is one of three @CorePlugins, it is responsible for joining multiple data sources together to generate the template which is then converted to HTML before being browseable.
 
 # Updating the @JoinPlugin with extra output
 
@@ -7,8 +7,4 @@ So you've written your own plugin, and want to add it to the final generated pag
 
 1) Add the generated output to the `plugin.d/<join>` group.
 2) Add the per page extraction to the `plugin.d/join/run` file.
-
-## Special Considerations
-
-Based on experience the plugins generally perform best when the data is aggregated into a single repository, and then spit out on a page by page basis.
 

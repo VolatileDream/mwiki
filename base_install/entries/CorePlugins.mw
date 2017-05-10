@@ -1,0 +1,3 @@
+ * @JoinPlugin - joins data from various plugins into a final version of a page to be turned into #HTML
+ * @BasePlugin - turns final page versions into #HTML
+ * @IndexPlugin - generates the index page (which links to all pages and generated meta-pages)

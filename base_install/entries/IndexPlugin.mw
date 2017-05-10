@@ -1,0 +1,3 @@
+
+The @IndexPlugin is one of three @CorePlugins, it is responsible for generation of the landing page for the wiki when executing `mwiki browse`. It distinguishes between user generated pages, and automatically generated plugin pages via a naming convention.
+

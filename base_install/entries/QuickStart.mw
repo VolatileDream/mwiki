@@ -5,7 +5,7 @@ Welcome to @mwiki! This is a friendly guide to get you started with using @mwiki
 
 It might surprise you but not everything in the base install is required. It's really just the collection of every "official" plugin that is provided by @mwiki.
 
-The only required plugins are:
+The #CorePlugins are:
 
  * @JoinPlugin - joins data from various plugins into a final version of a page to be turned into #HTML
  * @BasePlugin - turns final page versions into #HTML
@@ -16,7 +16,7 @@ Really useful plugins:
  * @MentionsPlugin - finds all the mentions of a page in other pages
  * @MissingPlugin - generates a meta page of all missing links in the entire wiki (and displays the pages where they are used)
 
-Other plugins that are included but not required, and possibly not terribly useful:
+Other plugins that are included but not required, and possibly not terribly useful depending on your use case:
 
  * @SearchppPlugin - using @swishpp (swish++) it creates a search index over the wiki
  * @JournalPlugin - an additional utility that wraps @mwiki to create a personal journal
@@ -26,6 +26,8 @@ Other plugins that are included but not required, and possibly not terribly usef
 # mwiki Plugin Organization
 
 All of the @mwiki plugins are referenced from a central file (#Tupfile). This file lists the (loose) order in which the plugins should be running, and which plugins to run. Each plugin has their own set of @Tup rules to say what they take as input and what they provide as output.
+
+Visit #WritingPlugins to see how to add new plugins, and interact correctly with the base plugin set.
 
 # Whoa, that was unexpected
 
