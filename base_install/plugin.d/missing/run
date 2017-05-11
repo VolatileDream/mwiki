@@ -1,26 +1,61 @@
 #!/usr/bin/env bash
 
-pages_linked_to(){
-	mwiki entries				|
-	while read entry ; do
-		cat "entries/$entry.mw"
-	done					|
-	grep -o '[#@]\([a-zA-Z_0-9\-]\+\)'	|
-	tr -d '#@'				|
+read -d '' join_pages <<- EOSCRIPT
+	BEGIN				\
+		{ missing = "" ; pages="" ; }
+	function line_end(){
+		# only if missing isn't empty string
+		if( missing ){
+			print( missing pages );
+		}
+	}
+	\$1 != missing 			\
+		{
+		  line_end()
+		  # reset the print out stuff
+		  missing = \$1 ;
+		  pages = "" ;
+		}
+	\$1 = missing			\
+		{
+		  sub(missing, "");
+		  pages = pages \$0 ;
+		}
+	END				\
+		{ line_end() }
+EOSCRIPT
+
+all_links(){
+	grep -o '[#@]\([a-zA-Z_0-9\-]\+\)' --recursive entries/	|
+	sed							\
+		-e 's_^entries/\([^:]\+\).mw:\(.\+\)$_\2 \1_'	\
+		-e 's_^[#@]__'					|
 	sort -u
+}
+
+pages_linked_to(){
+	grep -o '[#@]\([a-zA-Z_0-9\-]\+\)' --recursive entries/ --no-filename	|
+	sed -e 's_^[#@]__' | sort -u
 }
 
 pages(){
-	mwiki entries |
-	sort -u
+	mwiki entries
+}
+
+missing_links(){
+	( pages_linked_to ; pages ; pages )	|
+	# join the two lists
+	sort					|
+	# show only unique entries, which gives us the pages that are missing
+	uniq -u
 }
 
 run(){
-	( pages_linked_to ; pages ; pages ) |
-	# join the two lists
-	sort |
-	# show only unique entries, which gives us the pages that are missing
-	uniq -u
+	( missing_links | awk '{ print $0 " ~" }' ; all_links )	|
+	sort							|
+	awk -- "${join_pages}"					|
+	grep --extended-regexp "~$"				|
+	sed -e 's_^__' -e 's_ ~$__' -e 's_ _\n\&nbsp;#_g'
 }
 
 
