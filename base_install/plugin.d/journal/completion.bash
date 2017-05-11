@@ -36,7 +36,7 @@ __mwiki_journal_since(){
 	local cur base opts
 	if [ ${COMP_CWORD} -eq 2 -o ${COMP_CWORD} -eq 4 ]; then
 		__mwiki_journal_view
-	else
+	elif [ ${COMP_CWORD} -eq 3 ]; then
 		COMPREPLY=(until)
 	fi
 }
