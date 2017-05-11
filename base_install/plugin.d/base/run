@@ -1,13 +1,24 @@
 #!/bin/sh
-(
+
+
+transform_file(){
 	title="${1%.mw}"
 	title="${title#partial/}"
 	echo "<h1> ${title} </h1><hr>"
 	# this function is used to generate any sort of markdown/format file
 	# to html output.
-	cat "$1" |
-	# [#@]			# match a '#' or '@' both are ok
-	#     ( [a-zA-Z_0-9\-]+ )	# capture the part that matters
-	sed 's_[#@]\([a-zA-Z_0-9\-]\+\)_<a href="\1.html">&</a>_g'
-) |
-awk '{ print $0 "<br>" }'
+	cat "$1"	|
+	sed		\
+		-e 's_^#\+ \(.\+\)$_<h4>\1</h4>_'				\
+		-e 's_[#@]\([a-zA-Z_0-9\-]\+\)_<a href="\1.html">&</a>_g'	\
+		-e 's_^\[\([^]]\+\)\]:_<span id="LINK\1">&</span>_'		\
+		-e  's_\[\([^]]\+\)\]_<a href="#LINK\1">&</a>_g'		\
+		-e 's_^---\+$_<hr>_'
+}
+
+run(){
+	transform_file "$1" |
+	awk '{ print $0 "<br>" }'
+}
+
+run "$@"

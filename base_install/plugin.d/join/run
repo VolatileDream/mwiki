@@ -3,5 +3,9 @@ ENTRY="$1" ; shift
 
 cat entries/$ENTRY.mw
 
+echo
+echo '<hr>'
+echo '# Mentions'
+
 plugin.d/mentions/extract partial/core-mentions $ENTRY
 
