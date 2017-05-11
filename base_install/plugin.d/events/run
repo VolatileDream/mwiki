@@ -1,14 +1,62 @@
 #!/usr/bin/env bash
 
+get_events_with_date(){
+	grep --extended-regexp '^!event' --recursive "entries/"		|
+	# change filename into date (with dashes)
+	sed 's_entries/\([^.]\+\).mw_\1_'
+
+}
+
+insert_event_date(){
+	while read entry; do
+		local date=${entry%:*}
+		echo "${date//-//}:${entry#*:}"
+	done
+}
+
+order_events(){
+	LC_ALL=C sort
+}
+
+event_line(){
+	local temp="$1" ; shift
+	while read event ; do
+
+		local content="${event#* }"
+		local date="${event%:*}"
+
+		local type="${event% $content}"
+		type="${type#*:!}"
+
+		#echo "$type === $date === $content" >> /dev/stderr
+
+		case $type in
+			event)
+				echo "- $date $content" >> "$temp"
+				;;
+			event-start)
+				echo "- $date-~ $content" >> "$temp"
+				;;
+			event-end)
+				sed --in-place --expression "s_^- \(..../../..\)-~ ${content}_- \1-${date} ${content}_" "$temp"
+				;;
+		esac
+	 done
+}
+
 run(){
-	local entry="$1"; shift
-	local file="$1" ; shift
+	local temp=`mktemp`
 
-	local date=` echo "$entry" | sed 's_-_/_g' `
+	get_events_with_date	|
+	insert_event_date	|
+	order_events		|
+	event_line "$temp"
 
-	cat "$file"		|
-	 grep -E '^!event'	|
-	 sed "s_^!event\(-start\|-end\)\?_event\\1 ${date}_"
+    (   echo "# Events" ;
+        cat "$temp" |
+         order_events )
+
+	rm "$temp"
 }
 
 run "$@"
