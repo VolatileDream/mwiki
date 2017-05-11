@@ -3,7 +3,7 @@ include_rules
 # these rules are used to join all of the different bits of a page into
 # a single page. The actual joining is done by ./run, which needs to get
 # editted for each new page-part generating plugin. It is important that
-# any plugin adds it's parts of generated pages to the partial/<%B> group,
+# plugins which add data to pages add their output to plugin.d/<join>
 # this ensures consistent dependency ordering.
 
 !join = | plugin.d/<join> |> plugin.d/join/run %B > %o |>
