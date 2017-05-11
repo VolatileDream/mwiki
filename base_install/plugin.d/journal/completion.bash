@@ -28,7 +28,9 @@ __mwiki_journal_view(){
 		grep -Eo "^${cur}[[:digit:]]*(-|$)" |
 		# grab unique entries
 		uniq ) )
-
+    if [ ${#COMPREPLY[@]} -ne 1 -o "${cur}" != "${COMPREPLY[0]}" ]; then
+        compopt -o nospace
+    fi
 	return 0
 }
 
