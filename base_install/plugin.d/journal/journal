@@ -137,9 +137,9 @@ edit(){
 
     # switch to the mwiki entries to allow the user to easily copy
     # and edit content from the wiki while editing the journal.
-    pushd "$JOURNAL/entries"
+    pushd "$JOURNAL/entries" > /dev/null
 		sensible-editor "$JOURNAL_FILES/last-journal-entry"
-    popd
+    popd > /dev/null
 	fi
 }
 
