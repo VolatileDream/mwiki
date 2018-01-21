@@ -135,7 +135,11 @@ edit(){
 		# if the user doesn't write to this file, it will remain empty.
 		# this is a nice way to ignore empty entries.
 
+    # switch to the mwiki entries to allow the user to easily copy
+    # and edit content from the wiki while editing the journal.
+    pushd "$JOURNAL/entries"
 		sensible-editor "$JOURNAL_FILES/last-journal-entry"
+    popd
 	fi
 }
 

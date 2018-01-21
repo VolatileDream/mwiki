@@ -139,10 +139,9 @@ mwiki_edit(){
 		fi
 
         # This makes it really nice to open other entries while editing.
-        local old_path="$PWD"
-        cd "${MWIKI_PATH}/entries/"
+        pushd "${MWIKI_PATH}/entries/"
         sensible-editor "${entry}.mw"
-        cd "$old_path"
+        popd
     fi
 
 	# this is an ugly hack to deal with tup incorrectly updating #.html
