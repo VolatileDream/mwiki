@@ -8,5 +8,5 @@ fi
 
 cd "$(journal config journal location)"
 
-git show --name-only "HEAD~$N"
+git show --name-only "HEAD~$N..HEAD"
 
