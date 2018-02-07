@@ -1,13 +1,5 @@
 #!/bin/sh
 
-create_dependencies() {
-  # create a dependency between the output of whatever runs this to all
-  # of the input files that get used to create this. This isn't exactly
-  # correct, as it could be possible that some files don't get included
-  # into the index, but we assume that `gen_index` does get them all.
-  files | xargs -L 1 -I {} cat {} > /dev/null
-}
-
 files() {
   # Get files from a directory.
   find "$MWIKI_DIR" -type f -iname '*.mw'
@@ -16,6 +8,14 @@ files() {
 file_name() {
   # convert from file path to file name.
   sed -e 's_[^/]*/_#_g' -e 's_.mw$__'
+}
+
+create_dependencies() {
+  # create a dependency between the output of whatever runs this to all
+  # of the input files that get used to create this. This isn't exactly
+  # correct, as it could be possible that some files don't get included
+  # into the index, but we assume that `gen_index` does get them all.
+  files | xargs -L 1 -I {} cat {} > /dev/null
 }
 
 gen_index() {
@@ -45,6 +45,7 @@ gen_index() {
 run() {
   MWIKI_DIR="$1" ; shift
   create_dependencies
+  # this plugin directly invokes the base plugin
   gen_index | plugin.d/base/run --stdin "#"
 }
 
