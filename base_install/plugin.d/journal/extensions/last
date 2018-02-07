@@ -6,5 +6,5 @@ if [ $# -gt 0 ]; then
 	N="$1"
 fi
 
-journal view $( journal entries | grep -E '^[0-9\-]+$' | tail -n "$N" )
+journal view $( journal entries --reverse | grep -E '^[0-9\-]+$' | head -n "$N" )
 
