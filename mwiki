@@ -67,8 +67,28 @@ mwiki_init(){
 
 mwiki_entries(){
 	mwiki_require
-	cd "$MWIKI_PATH/entries"
-	ls | grep '\.mw$' | sed 's/\.mw$//'
+  local reverse_flag=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --reverse)
+        reverse_flag="--reverse" ; shift
+        ;;
+      *)
+        echo "error: unrecognized arg to entries: $1" > /dev/stderr
+        exit 1
+        ;;
+    esac
+  done
+
+	pushd "$MWIKI_PATH/entries" > /dev/null
+  # (ab)using sort & bash arguments like this is safe, only because
+  # we control the contents of the `reverse_flag` variable. It's still
+  # not a great thing.
+  #
+  # when unset (or empty string) no extra arguments get passed to sort.
+  # when set, sort sees "--reverse"
+  find -iname '*.mw' | sed -e 's_^./__' -e 's_\.mw$__' | sort $reverse_flag
+  popd > /dev/null
 }
 
 mwiki_build(){
@@ -177,7 +197,7 @@ mwiki(){
 	case "$command" in
 		init) mwiki_init "$@" ;;
 		edit) mwiki_edit "$@" ;;
-		entries) mwiki_entries ;;
+		entries) mwiki_entries "$@" ;;
 		browse) mwiki_browse "$@" ;;
 		# things for building
 		build) mwiki_build "$@" ;;
