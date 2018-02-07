@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 
-run(){
-	local entry="$1" ; shift
-	local file="$1" ; shift
-	cat "$file"		|
-	grep -E '^!quotes '	|
+get_quotes(){
+	grep -E '^!quotes ' --recursive "entries/" |
 	# remove the quote specifier
-	sed 's_^!quotes \+__'	|
-	# add a starting space for subsequent quote lines
-	sed 's_\\n_<br>\&nbsp;_g'	|
-	awk '{ print "<p>" $0 "</p>" }'
+	sed 's_^entries/\(.\+\)\.mw:!quotes \+\(.\+\)_\2\\n(#\1)_'
+}
+
+format_quotes(){
+	# put space between quotes
+	sed 's_$_\n_'				|
+	# do some string replacement for quotes
+	sed 's_\\n_\n\&nbsp;\&nbsp;_g'
+}
+
+run(){
+	get_quotes	|
+	format_quotes
 }
 
 run "$@"

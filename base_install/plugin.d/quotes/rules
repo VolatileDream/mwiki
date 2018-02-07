@@ -1,5 +1,3 @@
 include_rules
 
-!each_quotes = |> plugin.d/quotes/run %B %f > %o |>
-: foreach entries/*.mw |> !each_quotes |> partial/%B.quotes
-: | partial/*.quotes |> ^ join partial/*.quotes > %o^ find "partial" -name '*.quotes' -print0 | xargs --null cat > %o |> partial/~quotes.mw <meta>
+: | entries/*.mw |> plugin.d/quotes/run > %o |> partial/~quotes.mw <meta>
