@@ -300,7 +300,7 @@ else
 			edit "$@" ;;
 		entries)
 			require-journal
-			_wiki entries ;;
+			_wiki entries "$@" ;;
 		query)
 			query "$@" ;;
 		update)
