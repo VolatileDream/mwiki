@@ -192,24 +192,30 @@ create(){
 view(){
 	require-journal
 
+  local -a ARGS
+  local reverse_flag=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --reverse) reverse_flag="--reverse" ;;
+      *) ARGS+=("$1") ;;
+    esac
+    shift
+  done
+
 	# all entries must be shown with a single command invocation
 	# this prevents the user from having to exit the pager
 	# again and again and again, and get really frustrated
 
-	if [ ! -z "$*" ]; then
-		# ahahahah, generate an awk script...this is hacky.
-		# the script matches entries that start with the data we were passed in
-		local SCRIPT=` for entry in "$@"; do echo " /^$entry/ || " ; done ; echo '/^$/ { print $0 }' `
-
-		# conveniently we use the fact that the wiki provides key listing
-		# functionality to find and display matching keys
-		_wiki entries |
-		 awk "$SCRIPT" |
-		while read entry ; do
-			echo "--------------- ${entry}"
-			cat "$JOURNAL/entries/$entry.mw"
-			echo
-		done | sensible-pager
+	if [ ! -z "${ARGS[*]}" ]; then
+    for selector in "${ARGS[@]}" ; do
+      _wiki entries $reverse_flag |
+        grep -E "^${selector}" |
+        while read entry ; do
+          echo "--------------- ${entry}"
+          cat "$JOURNAL/entries/${entry}.mw"
+          echo
+        done
+    done | sensible-pager
 	fi
 }
 
