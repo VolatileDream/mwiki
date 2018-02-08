@@ -13,7 +13,7 @@ cd "$(journal config journal location)"
 # So we add all the files to the git commit so that we can find the
 # untracked files to notice that we have to commit them.
 git add .
-if git diff --cached --quiet ; then
+if git diff --quiet ; then
 	git commit "$@"
 fi
 
