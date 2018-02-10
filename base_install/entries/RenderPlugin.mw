@@ -1,7 +1,7 @@
 
 The @RenderPlugin is one of three @CorePlugins, it is responsible for joining multiple data sources together to generate the template which is then converted to HTML before being browseable.
 
-# Updating the @RenderPlugin with extra output
+## Updating the @RenderPlugin with extra output
 
 So you've written your own plugin, and want to add it to the final generated page. This is a relatively straight forward process.
 

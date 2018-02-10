@@ -1,7 +1,7 @@
 
 Welcome to @mwiki! This is a friendly guide to get you started with using @mwiki.
 
-# Bare Bones Setup
+## Bare Bones Setup
 
 It might surprise you but not everything in the base install is required. It's really just the collection of every "official" plugin that is provided by @mwiki.
 
@@ -23,12 +23,12 @@ Other plugins that are included but not required, and possibly not terribly usef
  * @EventsPlugin - adds support for aggregating events across journal entries
  * @QuotesPlugin - adds support for aggregating quotes across pages
 
-# mwiki Plugin Organization
+## mwiki Plugin Organization
 
 All of the @mwiki plugins are referenced from a central file (#Tupfile). This file lists the (loose) order in which the plugins should be running, and which plugins to run. Each plugin has their own set of @Tup rules to say what they take as input and what they provide as output.
 
 Visit #WritingPlugins to see how to add new plugins, and interact correctly with the base plugin set.
 
-# Whoa, that was unexpected
+## Whoa, that was unexpected
 
 There are a few known @Bugs at the moment, most notably when adding a new page the default `mwiki browse` page won't have it after editing.

@@ -1,5 +1,5 @@
 
-# So you want to write an @mwiki plugin...
+## So you want to write an @mwiki plugin...
 
 Writing @mwiki plugins is fairly simple, as they usually consist of two parts.
 
@@ -7,7 +7,7 @@ The first part is the @Tup rules that say what input is used to generate what ou
 
 The second part is the small executable that modifies the input into the output (by convention, this is in plugin.d/<plugin>/run).
 
-# Installing a Plugin
+## Installing a Plugin
 
 Once your plugin is ready, you will need to include the rules into the base @Tupfile.
 
@@ -15,17 +15,17 @@ If you look at the Tupfile, you'll see how all the other plugins are included in
 
 Note that the order that they are included is important. If your plugin interacts with the output of another plugin, make sure it gets included after it. Because of this, all plugins must be included before the @RenderPlugin, @HtmlPlugin, and @HtmlIndexPlugin.
 
-# Creating your own Page
+## Creating your own Page
 
 Some plugins create pages that aggregate information from across the rest of the wiki. An example of such a plugin is the @MissingPlugin.
 
 In this case it's relatively simple to add the plugin to the @Tupfile, and output whatever you need to.
 
-# Adding Output to Pages (interacting with @RenderPlugin)
+## Adding Output to Pages (interacting with @RenderPlugin)
 
 If your plugin is generating extra output to add to the final generated pages, you'll need to update the @RenderPlugin template.
 
-# Special Considerations
+## Special Considerations
 
 Based on experience, plugins generally perform best when the data is aggregated into a single repository, and then spit out on a page by page basis. @MentionsPlugin is a good example of this.
 
