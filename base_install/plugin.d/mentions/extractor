@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+has() {
+  cat "$db" | grep --quiet "${page}\$"
+}
+
+extract() {
+	cat "$db"           |
+	 grep "${page}\$"   |
+	 sed                \
+        -e 's_ :: .*__' \
+        -e 's_^_#_'
+}
+
+run(){
+	db="$1" ; shift
+  com="$1" ; shift
+	page="$1" ; shift
+
+  case $com in
+    --has) has ;;
+    --extract) extract ;;
+  esac
+}
+
+run "$@"
+

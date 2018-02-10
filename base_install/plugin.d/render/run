@@ -4,8 +4,11 @@ ENTRY="$1" ; shift
 cat entries/$ENTRY.mw
 
 echo
-echo '<hr>'
-echo '# Mentions'
 
-plugin.d/mentions/extract partial/core-mentions $ENTRY
+#
+plugin.d/mentions/extractor partial/core-mentions --has $ENTRY \
+  && echo '---' \
+  && echo '# Mentions' \
+  && plugin.d/mentions/extractor partial/core-mentions --extract $ENTRY
 
+exit 0
