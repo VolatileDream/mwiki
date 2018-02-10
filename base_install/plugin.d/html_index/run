@@ -46,7 +46,7 @@ run() {
   MWIKI_DIR="$1" ; shift
   create_dependencies
   # this plugin directly invokes the html plugin
-  gen_index | plugin.d/html/run --stdin "#"
+  gen_index | plugin.d/html/run
 }
 
 run "$@"

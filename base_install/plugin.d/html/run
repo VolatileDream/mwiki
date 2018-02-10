@@ -3,36 +3,22 @@
 transform_input(){
 	# this function converts something that looks like markdown into html.
 	sed		\
-		-e 's_^#\+ \(.\+\)$_<h4>\1</h4>_'				\
+    -e 's_<_\&lt;_g' -e 's_>_\&gt;_g' \
+		-e 's_^# \(.\+\)$_<h1>\1</h1>_'				\
+		-e 's_^##\+ \(.\+\)$_<h4>\1</h4>_'				\
 		-e 's_[#@]\([a-zA-Z_0-9~\-]\+\)_<a href="\1.html">&</a>_g'	\
 		-e 's_^\[\([^]]\+\)\]:_<span id="LINK\1">&</span>_'		\
 		-e  's_\[\([^]]\+\)\]_<a href="#LINK\1">&</a>_g'		\
 		-e 's_^---\+$_<hr>_' |
-  awk '{ print $0 "<br>" }'
+  awk '{ print $0 "<br>" }' |
+  # --null-data because we want to do multiline operations.
+  sed --null-data \
+    -e 's_<br>\n<\(hr\|h1\|h4\)>_<\1>_g' \
+    -e 's_<\(hr\|/\?h1\|/\?h4\)><br>_<\1>_g'
 }
 
 run(){
-  local file title
-  local command="$1" ; shift
-  case "$command" in
-    --stdin)
-      file='/dev/stdin'
-      # assuming the caller also passes the --title flag
-      title="$1" ; shift
-      ;;
-    --file)
-      file="$1" ; shift
-      title="${file%.mw}"
-      title="${title#partial/}"
-      ;;
-  esac
-  # only some of the conversions add a title.
-  # rather than adding more complex rules to generate the <h1> tag, pass a
-  # command line parameter to do it instead.
-  if [ -n "$1" -a "$1" = '--title' ] ; then
-	  echo "<h1> ${title} </h1><hr>" ; shift ;
-  fi
-  cat "$file" | transform_input
+  transform_input
 }
 
 run "$@"

@@ -5,7 +5,7 @@ include_rules
 
 # Note that it is mandatory that page parts get added to partial/<%B>
 
-!generate_html = | partial/<%B> |> plugin.d/html/run --file %f --title > %o |>
+!generate_html = | partial/<%B> |> ^ plugin.d/html %f^ cat %f | plugin.d/html/run > %o |>
 
 : foreach partial/*.mw |> !generate_html |> build/%B.html <html>
 
