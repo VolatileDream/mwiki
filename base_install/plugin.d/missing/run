@@ -51,6 +51,8 @@ missing_links(){
 }
 
 run(){
+  echo "# ~missing"
+  echo "----------"
 	( missing_links | awk '{ print $0 " ~" }' ; all_links )	|
 	sort							|
 	awk -- "${join_pages}"					|
