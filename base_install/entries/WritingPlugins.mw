@@ -13,7 +13,7 @@ Once your plugin is ready, you will need to include the rules into the base @Tup
 
 If you look at the Tupfile, you'll see how all the other plugins are included into the file.
 
-Note that the order that they are included is important. If your plugin interacts with the output of another plugin, make sure it gets included after it. Because of this, all plugins must be included before the @JoinPlugin, @BasePlugin, and @IndexPlugin.
+Note that the order that they are included is important. If your plugin interacts with the output of another plugin, make sure it gets included after it. Because of this, all plugins must be included before the @RenderPlugin, @HtmlPlugin, and @HtmlIndexPlugin.
 
 # Creating your own Page
 
@@ -21,9 +21,9 @@ Some plugins create pages that aggregate information from across the rest of the
 
 In this case it's relatively simple to add the plugin to the @Tupfile, and output whatever you need to.
 
-# Adding Output to Pages (interacting with @JoinPlugin)
+# Adding Output to Pages (interacting with @RenderPlugin)
 
-If your plugin is generating extra output to add to the final generated pages, you'll need to update the @JoinPlugin template.
+If your plugin is generating extra output to add to the final generated pages, you'll need to update the @RenderPlugin template.
 
 # Special Considerations
 

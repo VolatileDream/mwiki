@@ -1,4 +1,0 @@
-
-The @BasePlugin is one of three @CorePlugins. It is responsible for converting built pages under $wiki/partial/ into #HTML files under $wiki/build/
-
-It is automatically invoked for any *.mw files under partial, and should be the last plugin to run.
