@@ -1,4 +1,0 @@
-include_rules
-
-: partial/*.mw <meta> |> plugin.d/index/run partial > %o |> build/#.html
-

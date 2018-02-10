@@ -45,8 +45,8 @@ gen_index() {
 run() {
   MWIKI_DIR="$1" ; shift
   create_dependencies
-  # this plugin directly invokes the base plugin
-  gen_index | plugin.d/base/run --stdin "#"
+  # this plugin directly invokes the html plugin
+  gen_index | plugin.d/html/run --stdin "#"
 }
 
 run "$@"

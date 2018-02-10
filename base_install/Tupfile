@@ -16,16 +16,16 @@ include plugin.d/quotes/rules
 
 # join connects user generated content with data from plugins.
 
-include plugin.d/join/rules
+include plugin.d/render/rules
 
 # By convention, the index plugin creates the '#' page which is the
 # default entry point of mwiki.
 
-include plugin.d/index/rules
+include plugin.d/html_index/rules
 
 # The base plugin is used to generate the base page from the wiki entry
 # itself, strictly doing the conversion between wiki syntax and html.
 # This rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are order dependant.
 
-include plugin.d/base/rules
+include plugin.d/html/rules

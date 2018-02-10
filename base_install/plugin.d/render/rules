@@ -6,7 +6,7 @@ include_rules
 # plugins which add data to pages add their output to plugin.d/<join>
 # this ensures consistent dependency ordering.
 
-!join = | plugin.d/<join> |> plugin.d/join/run %B > %o |>
+!render = | plugin.d/<join> |> plugin.d/render/run %B > %o |>
 
-: foreach entries/*.mw |> !join |> partial/%B.mw
+: foreach entries/*.mw |> !render |> partial/%B.mw
 
