@@ -18,28 +18,30 @@ create_dependencies() {
   files | xargs -L 1 -I {} cat {} > /dev/null
 }
 
+section() {
+  local title="$1" ; shift
+  local order=""
+  if [ "$1" = "--reverse" ]; then
+    order="--reverse" ; shift
+  fi
+
+  if files | grep "$@" --quiet ; then
+    echo "# $title"
+    echo "---"
+      files |
+      grep "$@" |
+      file_name |
+      sort --unique $order
+  fi
+}
+
 gen_index() {
-  echo "# Journal"
-  echo "---"
-  files |
-    grep '/....-..-..\.mw$' |
-    file_name |
-    sort -ur
-  echo "---"
-  echo "# Wiki"
-  echo "---"
-  files |
-    grep -v '/....-..-..\.mw$' |
-    grep -v '/~[^/]*\.mw$' |
-    file_name |
-    sort -u
-  echo "---"
-  echo "# Generated Pages"
-  echo "---"
-  files |
-    grep '/~[^/]*\.mw$' |
-    file_name |
-    sort -u
+  local DATE_FORMAT='/....-..-..\.mw$'
+  local GENERATED='/~[^/]*\.mw$'
+  section "Journal" --reverse "$DATE_FORMAT"
+  section "Wiki" --invert-match -e "$DATE_FORMAT" -e "$GENERATED"
+  section "Generated Pages" "$GENERATED" 
+  section "Empty" "$^"
 }
 
 run() {
