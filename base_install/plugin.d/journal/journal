@@ -191,6 +191,7 @@ create(){
 
 view(){
 	require-journal
+  _wiki build 1>&2 || exit 1
 
   local -a ARGS
   local reverse_flag=""
@@ -211,8 +212,7 @@ view(){
       _wiki entries $reverse_flag |
         grep -E "^${selector}" |
         while read entry ; do
-          echo "--------------- ${entry}"
-          cat "$JOURNAL/entries/${entry}.mw"
+          cat "$JOURNAL/partial/${entry}.mw"
           echo
         done
     done | sensible-pager
