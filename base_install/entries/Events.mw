@@ -1,0 +1,38 @@
+
+This plugin only really makes sense to use with the #Journal plugin.
+
+It assumes that file names are dates, and looks for lines starting with "!event", "!event-start", and "!event-end" and then outputs these events into a single timeline file.
+
+This file is kept up to date as the journal evolves, and different events occur and end.
+
+Note that file names are "YYYY-MM-DD.mw" format, as are the dates output by this plugin.
+
+---
+
+# Example
+> # 1990-01-01.mw
+> !event I was born!
+>
+> # 1993-02-02.mw
+> !event I said my first word: mine
+>
+> # 2010-03-03.mw
+> !event-start I'm dating Alex
+>
+> # 2012-04-04.mw
+> # Note that this entry mirrors the above item exactly!
+> # This is how the plugin detects the end of an event.
+> !event-end I'm dating Alex
+>
+> # 2015-05-05.mw
+> # This event isn't terminated
+> !event-start Studying for Phd
+
+---
+
+## Sample Output
+- 1990/01/01 I was born!
+- 1993/02/02 I said my first word: mine
+- 2010/03/03-2012/04/04 I'm dating Alex
+- 2015/05/05-~ Studying for Phd
+

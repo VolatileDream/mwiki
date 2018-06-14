@@ -1,0 +1,10 @@
+
+This plugin searches for lines of text starting with "!quotes" and copies them into the "#~quotes" file in the wiki.
+
+Mostly useful for usage with the #Journal plugin, for when you hear something interesting.
+
+---
+
+Here's an example:
+
+!quotes Don't cry because it's over, smile because it happened. \n -- Dr. Seuss

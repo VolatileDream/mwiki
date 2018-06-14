@@ -1,0 +1,5 @@
+
+The #Quotes and #Events plugins are two plugins that aggregate content from other pages.
+
+Both of them search for lines starting with an exclamation mark and pull that content into their pages.
+
