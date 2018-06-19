@@ -2,34 +2,34 @@
 
 get_events_with_date(){
 	grep --extended-regexp '^!event' --recursive "entries/"		|
-	# change filename into date (with dashes)
-	sed 's_entries/\([^.]\+\).mw_\1_'
-
-}
-
-insert_event_date(){
-	while read entry; do
-		local date=${entry%:*}
-		echo "${date//-//}:${entry#*:}"
-	done
+  # events are expected to have this order
+	sed -e 's_entries/\(....\)-\(..\)-\(..\).mw_\1/\2/\3_' 
 }
 
 order_events(){
+  # Conveniently, the format has static text at the beginning, which is
+  # followed by the date in temporally decreasing magnitude
 	LC_ALL=C sort
 }
 
 event_line(){
 	local temp="$1" ; shift
 	while read event ; do
+    # Lines have the format:
+    # "YYYY/MM/DD:!" event-type " " event-content
 
 		local content="${event#* }"
-		local date="${event%:*}"
+		local date="${event%%:*}"
 
-		local type="${event% $content}"
-		type="${type#*:!}"
+  	local type="${event%% *}" ;
+    type="${type#*:!}"
 
 		#echo "$type === $date === $content" >> /dev/stderr
 
+    # Context: it is possible to have multiple events with the same content.
+    # Problem: event-end should operate to close only the first such event.
+    # Solution: Order items by date, and immediately replace event-end items.
+    #         : this is why the temp file exists.
 		case $type in
 			event)
 				echo "- $date $content" >> "$temp"
@@ -47,14 +47,14 @@ event_line(){
 run(){
 	local temp=`mktemp`
 
-	get_events_with_date	|
-	insert_event_date	|
-	order_events		|
-	event_line "$temp"
+  # generate plugin content, processing input files.
+	get_events_with_date \
+	 | order_events \
+ 	 | event_line "$temp" ;
 
-    (   echo "# Events" ;
-        cat "$temp" |
-         order_events )
+  # Output plugin content
+  echo "# Events" ;
+  cat "$temp" | order_events ;
 
 	rm "$temp"
 }
