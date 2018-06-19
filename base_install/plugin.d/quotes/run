@@ -2,6 +2,7 @@
 
 get_quotes(){
 	grep -E '^!quotes ' --recursive "entries/" |
+  sort |
 	# remove the quote specifier
 	sed 's_^entries/\(.\+\)\.mw:!quotes \+\(.\+\)_\2\\n(#\1)_'
 }
