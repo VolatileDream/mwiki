@@ -8,5 +8,5 @@ include_rules
 
 !render = | plugin.d/<join> |> plugin.d/render/run %B > %o |>
 
-: foreach entries/*.mw |> !render |> partial/%B.mw
+: foreach entries/*.mw |> !render |> partial/%B.md
 

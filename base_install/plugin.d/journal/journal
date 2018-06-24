@@ -212,7 +212,7 @@ view(){
       _wiki entries $reverse_flag |
         grep -E "^${selector}" |
         while read entry ; do
-          cat "$JOURNAL/partial/${entry}.mw"
+          cat "$JOURNAL/partial/${entry}.md"
           echo
         done
     done | sensible-pager
