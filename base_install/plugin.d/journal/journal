@@ -180,9 +180,7 @@ create(){
   # we don't care about where the MWIKI directory pointer lives, because
   #  we will setup every invocation of mwiki with MWIKI_PATH set. All we
   #  want is that it correctly sets up the wiki where we want it.
-  local dir=`mktemp --directory`
-  _wiki init "$dir" "$JOURNAL"
-  rm -r "$dir"
+  _wiki init "$JOURNAL"
 
   mkdir -p "$JOURNAL_FILES"
 }
