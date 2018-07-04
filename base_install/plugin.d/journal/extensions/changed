@@ -3,7 +3,7 @@
 N=0
 
 if [ $# -gt 0 ]; then
-	N="$1"
+  N="$1"
 fi
 
 cd "$(journal config journal location)"

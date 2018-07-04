@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ $# -lt 1 ]; then
-	echo "usage: journal find <regex>"
-	exit
+  echo "usage: journal find <regex>"
+  exit
 fi
 
 journal query search++ "$(journal search-terms | grep "$*" | tr '\n' ' ' | sed  -e 's/ / or /g' -e 's/ or $//' )"

@@ -5,17 +5,17 @@ has() {
 }
 
 extract() {
-	cat "$db"           |
-	 grep "${page}\$"   |
-	 sed                \
-        -e 's_ :: .*__' \
-        -e 's_^_#_'
+  cat "$db" |
+    grep "${page}\$" |
+    sed \
+      -e 's_ :: .*__' \
+      -e 's_^_#_'
 }
 
 run(){
-	db="$1" ; shift
-  com="$1" ; shift
-	page="$1" ; shift
+  local db="$1" ; shift
+  local com="$1" ; shift
+  local page="$1" ; shift
 
   case $com in
     --has) has ;;

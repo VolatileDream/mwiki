@@ -1,17 +1,18 @@
 #!/bin/sh
 
 transform_input(){
-	# this function converts something that looks like markdown into html.
-	sed		\
+  # this function converts something that looks like markdown into html.
+  sed \
     -e 's_<_\&lt;_g' -e 's_>_\&gt;_g' \
-		-e 's_^# \(.\+\)$_<h1>\1</h1>_'				\
-		-e 's_^##\+ \(.\+\)$_<h4>\1</h4>_'				\
-		-e 's_[#@]\([a-zA-Z_0-9~\-]\+\)_<a href="\1.html">&</a>_g'	\
-		-e 's_^\[\([^]]\+\)\]:_<span id="LINK\1">&</span>_'		\
-		-e  's_\[\([^]]\+\)\]_<a href="#LINK\1">&</a>_g'		\
-		-e 's_^---\+$_<hr>_' |
+    -e 's_^# \(.\+\)$_<h1>\1</h1>_' \
+    -e 's_^##\+ \(.\+\)$_<h4>\1</h4>_' \
+    -e 's_[#@]\([a-zA-Z_0-9~\-]\+\)_<a href="\1.html">&</a>_g' \
+    -e 's_^\[\([^]]\+\)\]:_<span id="LINK\1">&</span>_' \
+    -e  's_\[\([^]]\+\)\]_<a href="#LINK\1">&</a>_g' \
+    -e 's_^---\+$_<hr>_' |
   awk '{ print $0 "<br>" }' |
-  # --null-data because we want to do multiline operations.
+  # This is an abuse of the --null-data flag, it's being used here to
+  # multiline operations.
   sed --null-data \
     -e 's_<br>\n<\(hr\|h1\|h4\)>_<\1>_g' \
     -e 's_<\(hr\|/\?h1\|/\?h4\)><br>_<\1>_g'

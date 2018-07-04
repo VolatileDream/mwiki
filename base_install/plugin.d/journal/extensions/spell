@@ -5,6 +5,6 @@ FILE="$( journal config journal location )/plugin.d/journal/last-journal-entry"
 aspell check "$FILE"
 
 if [ -e "${FILE}.bak" ]; then
-	rm "$FILE.bak"
+  rm "$FILE.bak"
 fi
 

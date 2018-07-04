@@ -14,7 +14,7 @@ cd "$(journal config journal location)"
 # untracked files to notice that we have to commit them.
 git add .
 if git diff --quiet ; then
-	git commit "$@"
+  git commit "$@"
 fi
 
 # let whatever exit code we got propagate out.
