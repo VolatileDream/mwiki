@@ -177,12 +177,7 @@ create(){
 
   require-journal
 
-  # we don't care about where the MWIKI directory pointer lives, because
-  #  we will setup every invocation of mwiki with MWIKI_PATH set. All we
-  #  want is that it correctly sets up the wiki where we want it.
   _wiki init "$JOURNAL"
-
-  mkdir -p "$JOURNAL_FILES"
 }
 
 view(){
