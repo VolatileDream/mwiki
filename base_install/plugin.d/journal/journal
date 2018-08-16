@@ -3,9 +3,77 @@
 # configuration file
 CONFIG="$HOME/.config/mwiki-journal-config.ini"
 
-# get conch stuff for config
-# available at: https://github.com/VolatileDream/dot-files/blob/master/conch
-source "$HOME/bin/conch"
+# Originally sourced from github.com/VolatileDream/dot-files/blob/master/conch
+conch::fill(){
+	readonly COMMAND="$1" ; shift
+	local VAR="$1" ; shift
+	readonly INITIAL="$VAR"
+	while echo "$VAR" | grep --silent '\$' ; do
+		# replace each "${...}" group with it's config value
+
+		# find the first "${...}" group, and then extract the "..."
+		local match="$(echo "$VAR" | grep -oE '\${[^}]+}' | head -n 1)"
+		local segment="$(echo $match | tr -d '${}' )"
+
+    # Check that exactly 1 dot exists, as we need two args to invoke the user
+    # provided configuration tool.
+		if [ `echo $segment | grep -c '.'` -ne 1 ]; then
+			echo "error: can't fill in config value" > /dev/stderr
+      echo  "bad group '$segment' in $INITIAL" > /dev/stderr
+			exit 2
+		fi
+
+		# split into the parts
+		readonly args="$(echo $segment | tr '.' ' ' )"
+
+		# go and fetch the parts
+		readonly replace="$(conch::config "$COMMAND" $args)"
+
+		# annoying subshell handling stuff...
+		# otherwise the exit value gets swallowed
+		readonly EXIT_VAL=$?
+		if [ $EXIT_VAL -ne 0 ]; then
+			exit $EXIT_VAL
+		fi
+
+		VAR="$( echo "$VAR" | sed "s_${match}_${replace}_" )"
+	done
+	echo "$VAR"
+}
+
+conch::config(){
+	readonly COMMAND="$1" ; shift
+	readonly ARGS="$( $COMMAND "$@" )"
+
+	# check if the lookup worked
+	readonly EXIT_VAL=$?
+	if [ $EXIT_VAL -ne 0 ]; then
+		echo "Error looking up '$@'" > /dev/stderr
+		exit $EXIT_VAL
+	fi
+
+	conch::fill $ARGS
+}
+
+conch::main(){
+	if [ $# -lt 2 ]; then
+		usage > /dev/stderr
+		return 1
+	fi
+
+  # define the command that is run to fetch the config variables.
+	local COMMAND="$1" ; shift
+
+	if [ $# -gt 1 ]; then
+		# they're asking for the key, value
+		conch::config "$COMMAND" "$@"
+	else
+		# they're asking for the string to get filled in
+		conch::fill "$COMMAND" "$1"
+	fi
+
+	return $?
+}
 
 config(){
   if [ ! -e "$CONFIG" -a $# -lt 3 ]; then
@@ -27,7 +95,7 @@ config(){
       # any $HOME value with the environment variable
       VAR="$(ini "$CONFIG" "$@" | sed "s_\${HOME}_${HOME}_" )"
       if [ ! -z "$VAR" ]; then
-        conch config "$VAR"
+        conch::main config "$VAR"
       fi
     fi
   fi
