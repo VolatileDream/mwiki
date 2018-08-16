@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-LOC="$(journal config journal location)"
+main() {
+  local LOC="$(journal config journal location)/build/swish++.index"
 
-FILE="$LOC/build/swish++.index"
+  search++ --index-file "$LOC" -D | awk '/^[^ ]/ { print }'
+}
 
-search++ --index-file "$FILE" -D | awk '/^[^ ]/ { print }'
+main "$@"

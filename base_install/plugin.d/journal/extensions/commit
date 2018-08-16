@@ -1,23 +1,27 @@
 #!/bin/sh
 
-if [ $# -eq 0 ]; then
-  echo "usage: journal commit <git args>"
-  echo "  all extra parameters are passed as arguments to 'git commit'"
-  echo "  at minimum, '-m message' will need to be passed"
-  exit 0
-fi
+main() {
+  if [ $# -eq 0 ]; then
+    echo "usage: journal commit <git args>"
+    echo "  all extra parameters are passed as arguments to 'git commit'"
+    echo "  at minimum, '-m message' will need to be passed"
+    exit 0
+  fi
 
-cd "$(journal config journal location)"
+  cd "$(journal config journal location)"
 
-# 'git diff --quiet' does not detect changes to untracked files.
-# So we add all the files to the git commit so that we can find the
-# untracked files to notice that we have to commit them.
-git add .
-if git diff --quiet ; then
-  git commit "$@"
-fi
+  # 'git diff --quiet' does not detect changes to untracked files.
+  # So we add all the files to the git commit so that we can find the
+  # untracked files to notice that we have to commit them.
+  git add .
+  if git diff --quiet ; then
+    git commit "$@"
+  fi
 
-# let whatever exit code we got propagate out.
-# if the commit succeeds -> 0
-# if the commit fails -> !0
-# otherwise : no diff -> 0
+  # let whatever exit code we got propagate out.
+  # if the commit succeeds -> 0
+  # if the commit fails -> !0
+  # otherwise : no diff -> 0
+}
+
+main "$@"

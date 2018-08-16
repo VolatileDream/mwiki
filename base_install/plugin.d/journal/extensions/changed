@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
-N=0
+main() {
+  local N=0
+  if [ $# -gt 0 ]; then
+    N="$1"
+  fi
 
-if [ $# -gt 0 ]; then
-  N="$1"
-fi
+  cd "$(journal config journal location)"
 
-cd "$(journal config journal location)"
+  git show --name-only "HEAD~$N..HEAD"
+}
 
-git show --name-only "HEAD~$N..HEAD"
-
+main "$@"
