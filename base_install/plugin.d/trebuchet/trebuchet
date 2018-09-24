@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+
+from collections import defaultdict
+
+class TrebuchetFactory(object):
+
+  def __init__(self):
+    self.init = False
+    self.glyphs = dict()
+
+  def with_glyph(self, item, has_indent=True):
+    """
+    Add a glyph to the Trebuchet. Additionally specify if the item 'has indent',
+    that is it nests, items 'without indent' only exist on the root level,
+    regardless of the amount of indent they may have.
+
+    Items without indent will be stripped of leading whitespace.
+    """
+    if item in self.glyphs:
+      raise Exception("Item '%s' already exists!" % item)
+    self.glyphs[item] = has_indent
+    return self
+
+  def create_from(self, fileio=None, string=None, string_iterator=None):
+    """
+    Given either: a file, string, or iterator containing strings, builds
+    and returns a Trebuchet object.
+    """
+    if not self.glyphs:
+      raise Exception("Caller didn't specify glyphs!")
+
+    not_none=0
+    if fileio is not None:
+      not_none += 1
+    if string is not None:
+      not_none += 1
+    if string_iterator is not None:
+      not_none += 1
+    if not_none != 1:
+      raise Exception("createFrom called with too many arguments!")
+
+    if fileio:
+      return self.create_from(string_iterator=fileio.readlines())
+    if string:
+      return self.create_from(string_iterator=string.split("\n"))
+
+    # Hold a permanent reference to the root. The root is special, and has -1
+    # indent, to ensure that no other item could possibly have indent equal to
+    # it.
+    root = Trebuchet(indent=-1, line="", all_glyphs=self.glyphs)
+
+    # The stack of parent Trebuchet items.
+    stack = [root]
+    for line in string_iterator:
+      glyph, has_indent = self.__starting_glyph(line)
+      if not glyph:
+        if line.strip():
+          raise Exception("No glyph specified for: %s" % line)
+        else:
+          # empty line.
+          has_indent=False
+          indent = 0
+      else:
+        if not has_indent:
+          line = line.strip()
+          indent = 0
+        else:
+          indent = count_starting_whitespace(line)
+
+      current = Trebuchet(indent=indent, line=line, glyph=glyph)
+
+      # this item may need to be placed into the list properly.
+      if not has_indent:
+        # reset the stack, this item is appended to the root.
+        root.add_child(current)
+        stack = [root]
+      else:
+        # this item obeys indent rules. Attempt to get it into the list.
+        parent = None
+        while True:
+          parent = stack[-1]
+          print(indent, parent.indent)
+          if indent <= parent.indent:
+            stack.pop()
+          else:
+            break
+        parent.add_child(current)
+        # Assume the next item is beneath this one. If it's not, this will
+        # get popped off the stack immediately.
+        stack.append(current)
+
+    return root
+
+  def __starting_glyph(self, line):
+    line = line.lstrip()
+    for key, value in self.glyphs.items():
+      if line.startswith(key):
+        return (key, value)
+    #raise Exception("No glyph specified for: %s" % line)
+    return None, None
+
+class Trebuchet(object):
+  
+  def __init__(self, indent=0, line=None, glyph=None, children=None, all_glyphs=None):
+    self.indent = indent
+    self.line = line
+    self.glyph = glyph
+    self.children = children
+    if self.children is None:
+      self.children = []
+    self.all_glyphs = all_glyphs
+
+  def add_child(self, child):
+    self.children.append(child)
+
+  def reorder(self, ordering):
+    """
+    Takes a list of glyphs and returns a reordered trebuchet instance.
+    """
+    glyph_set = set(ordering).symmetric_difference(self.all_glyphs)
+    if len(glyph_set) > 0:
+      raise Exception(
+          "Not all glyphs present in reordering!"
+          " reorder must be called with all glyphs from initialization."
+          " %s vs %s" % (ordering, set(self.all_glyphs.keys())))
+    return self.__reorder(ordering)
+
+  def __reorder(self, ordering):
+    reordered_children = defaultdict(lambda: [])
+    for child in self.children:
+      reordered_children[child.glyph].append(child.__reorder(ordering))
+    new_children = []
+    for glyph in ordering:
+      new_children.extend(reordered_children[glyph])
+    return Trebuchet(
+        indent=self.indent,
+        line=self.line,
+        glyph=self.glyph,
+        children=new_children)
+
+  def filter(self, filterfn):
+    # TODO: maybe there should be keep/discard/delegate instead?
+    #       this potentially allows for keeping done parents w/undone children?
+    """
+    Accepts a Glpyh predicate function.
+
+    Filters out nodes that do not match the filter, is applied recursively.
+
+    Returns a new Trebuchet instance with the filtering applied.
+    """
+    # The glyph for this node was checked by its parent, only filter children.
+    # Convenient side effect -> root is never checked.
+    new_children = []
+    for c in self.children:
+      if filterfn(c.glyph):
+        new_children.append(c.filter(filterfn))
+    return Trebuchet(
+        indent=self.indent,
+        line=self.line,
+        glyph=self.glyph,
+        children=new_children)
+
+  def str(self):
+    children_repr = "".join([c.str() for c in self.children])
+    newline = "\n"
+    if self.indent == -1:
+      # don't add an extra newline for the root element.
+      newline = ""
+    return self.line + newline + children_repr
+
+  def __repr__(self):
+    children_repr = "\n".join([repr(c) for c in self.children])
+    newline = "\n"
+    if self.indent == -1:
+      # don't add an extra newline for the root element.
+      newline = ""
+    return "Trebuchet(line=" + self.line +", children=[" + children_repr + "])"
+
+# various utilities
+
+def count_starting_whitespace(string):
+  return len(string) - len(string.lstrip()) 
+
