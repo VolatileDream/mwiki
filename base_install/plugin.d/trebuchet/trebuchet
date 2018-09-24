@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from collections import defaultdict
+import enum
+from copy import copy
 
 class TrebuchetFactory(object):
 
@@ -67,7 +69,7 @@ class TrebuchetFactory(object):
         else:
           indent = count_starting_whitespace(line)
 
-      current = Trebuchet(indent=indent, line=line, glyph=glyph)
+      current = Trebuchet(indent=indent, line=line, glyph=glyph, all_glyphs=self.glyphs)
 
       # this item may need to be placed into the list properly.
       if not has_indent:
@@ -110,6 +112,30 @@ class Trebuchet(object):
       self.children = []
     self.all_glyphs = all_glyphs
 
+  def __copy__(self, indent=None, line=None, glyph=None, children=None, all_glyphs=None):
+    """
+    Implement functionality to use copy.copy, but also
+    provide an easy mechanism to change some subfields.
+    """
+    copy = Trebuchet(
+        indent=self.indent,
+        line=self.line,
+        glyph=self.glyph,
+        children=self.children,
+        all_glyphs=self.all_glyphs)
+    if indent is not None:
+      copy.indent = indent
+    if line is not None:
+      copy.line = line
+    if glyph is not None:
+      copy.glyph = glyph
+    if children is not None:
+      copy.children = children
+    if all_glyphs is not None:
+      copy.all_glyphs = all_glyphs
+
+    return copy
+
   def add_child(self, child):
     self.children.append(child)
 
@@ -132,11 +158,7 @@ class Trebuchet(object):
     new_children = []
     for glyph in ordering:
       new_children.extend(reordered_children[glyph])
-    return Trebuchet(
-        indent=self.indent,
-        line=self.line,
-        glyph=self.glyph,
-        children=new_children)
+    return self.__copy__(children=new_children)
 
   def filter(self, filterfn):
     # TODO: maybe there should be keep/discard/delegate instead?
@@ -154,11 +176,7 @@ class Trebuchet(object):
     for c in self.children:
       if filterfn(c.glyph):
         new_children.append(c.filter(filterfn))
-    return Trebuchet(
-        indent=self.indent,
-        line=self.line,
-        glyph=self.glyph,
-        children=new_children)
+    return self.__copy__(children=new_children)
 
   def str(self):
     children_repr = "".join([c.str() for c in self.children])
@@ -169,13 +187,108 @@ class Trebuchet(object):
     return self.line + newline + children_repr
 
   def __repr__(self):
-    children_repr = "\n".join([repr(c) for c in self.children])
-    newline = "\n"
-    if self.indent == -1:
-      # don't add an extra newline for the root element.
-      newline = ""
-    return "Trebuchet(line=" + self.line +", children=[" + children_repr + "])"
+    children_repr = ",".join([repr(c) for c in self.children])
+    newline = ""
+    return "Trebuchet(line='" + self.line +"', children=[" + children_repr + "])"
 
+
+class TrebuchetApp(object):
+
+  def __init__(self, root, misc, in_progress, done):
+    self.root = root
+    self.misc_glyphs = misc
+    self.in_progress_glyphs = in_progress
+    self.misc_glyphs_before = True
+    self.done_glyphs = done
+    pass # ???
+
+  def advance(self):
+    pass
+
+  def __glyph_ordering(self):
+    glyph_order = []
+    if self.misc_glyphs_before:
+      glyph_order.extend(self.misc_glyphs)
+      glyph_order.extend(self.in_progress_glyphs)
+    else:
+      glyph_order.extend(self.in_progress_glyphs)
+      glyph_order.extend(self.misc_glyphs)
+    glyph_order.append("---")
+    glyph_order.extend(self.done_glyphs)
+
+    return glyph_order
+
+  def advance_tree(self, node):
+    # Setup glyph ordering:
+    glyph_order = self.__glyph_ordering()
+
+    # First reorder the node, then perform complex filtering.
+    root = node.reorder(glyph_order)
+  
+    new_children = [] 
+    child_iter = iter(root.children) 
+    current = None
+
+    # copy items that aren't done yet.
+    while True:
+      current = next(child_iter)
+      if current.glyph == "---":
+        break
+      # Remove items that are done.
+      new_children.append(current.filter(
+          lambda glyph: glyph not in self.done_glyphs))
+
+    new_children.append(current)
+
+    # copy done items.
+
+    for child in root.children:
+      # you'd expect that here we'd only keep done items, but we actually
+      # have to keep the whole tree leading up to the done things. ie, when a
+      # root isn't done, but has some done sub items. We want to keep the sub
+      # items. ex:
+      #
+      # [] not done
+      #   * note
+      #   [x] done
+      # ---
+      #
+      # becomes
+      #
+      # [] not done
+      #   * note
+      # ---
+      # [] not done
+      #   [x] done
+      #
+      current = self.copy_done_items(child)
+      if current:
+        new_children.append(current)
+
+    # we're going to destructively mutate, create a copy.
+    root = copy(root)
+    root.children = new_children
+    return root
+
+  def copy_done_items(self, node):
+    # Keep items with a done glyph, and all their sub items.
+    if node.glyph in self.done_glyphs:
+      return node
+
+    # check to see if any of the nodes children make it worth keeping.
+    kept_children = []
+    for child in node.children:
+      copied = self.copy_done_items(child)
+      if copied:
+        kept_children.append(copied)
+
+    # If this had an item we want to keep as a child, keep it as well.
+    if len(kept_children) > 0:
+      node = copy(node)
+      node.children = kept_children
+      return node
+    return None
+ 
 # various utilities
 
 def count_starting_whitespace(string):
