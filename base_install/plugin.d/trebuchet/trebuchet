@@ -1,36 +1,21 @@
 #!/usr/bin/env python3
 
 from collections import defaultdict
-import enum
+from configparser import ConfigParser
 from copy import copy
+import enum
 
-class TrebuchetFactory(object):
+class TrebuchetParser(object):
 
-  def __init__(self):
+  def __init__(self, cfg):
     self.init = False
-    self.glyphs = dict()
-
-  def with_glyph(self, item, has_indent=True):
-    """
-    Add a glyph to the Trebuchet. Additionally specify if the item 'has indent',
-    that is it nests, items 'without indent' only exist on the root level,
-    regardless of the amount of indent they may have.
-
-    Items without indent will be stripped of leading whitespace.
-    """
-    if item in self.glyphs:
-      raise Exception("Item '%s' already exists!" % item)
-    self.glyphs[item] = has_indent
-    return self
+    self.config = cfg
 
   def create_from(self, fileio=None, string=None, string_iterator=None):
     """
     Given either: a file, string, or iterator containing strings, builds
     and returns a Trebuchet object.
     """
-    if not self.glyphs:
-      raise Exception("Caller didn't specify glyphs!")
-
     not_none=0
     if fileio is not None:
       not_none += 1
@@ -49,7 +34,7 @@ class TrebuchetFactory(object):
     # Hold a permanent reference to the root. The root is special, and has -1
     # indent, to ensure that no other item could possibly have indent equal to
     # it.
-    root = Trebuchet(indent=-1, line="", all_glyphs=self.glyphs)
+    root = Trebuchet(indent=-1, line="", config=self.config)
 
     # The stack of parent Trebuchet items.
     stack = [root]
@@ -69,7 +54,7 @@ class TrebuchetFactory(object):
         else:
           indent = count_starting_whitespace(line)
 
-      current = Trebuchet(indent=indent, line=line, glyph=glyph, all_glyphs=self.glyphs)
+      current = Trebuchet(indent=indent, line=line, glyph=glyph, config=self.config)
 
       # this item may need to be placed into the list properly.
       if not has_indent:
@@ -81,7 +66,6 @@ class TrebuchetFactory(object):
         parent = None
         while True:
           parent = stack[-1]
-          print(indent, parent.indent)
           if indent <= parent.indent:
             stack.pop()
           else:
@@ -95,24 +79,27 @@ class TrebuchetFactory(object):
 
   def __starting_glyph(self, line):
     line = line.lstrip()
-    for key, value in self.glyphs.items():
-      if line.startswith(key):
-        return (key, value)
-    #raise Exception("No glyph specified for: %s" % line)
+    for key in self.config.glyphs:
+      # checks if the line is the glyph, as some cases (the progress/done
+      # delimiter) will not have anything after the glyph. Lines that start
+      # with a glyph not followed by whitespace are technically errors.
+      if line.startswith(key + " ") or line == key:
+        return (key, key != self.config.delimiter)
     return None, None
+
 
 class Trebuchet(object):
   
-  def __init__(self, indent=0, line=None, glyph=None, children=None, all_glyphs=None):
+  def __init__(self, indent=0, line=None, glyph=None, children=None, config=None):
     self.indent = indent
     self.line = line
     self.glyph = glyph
     self.children = children
     if self.children is None:
       self.children = []
-    self.all_glyphs = all_glyphs
+    self.config = config
 
-  def __copy__(self, indent=None, line=None, glyph=None, children=None, all_glyphs=None):
+  def __copy__(self, indent=None, line=None, glyph=None, children=None):
     """
     Implement functionality to use copy.copy, but also
     provide an easy mechanism to change some subfields.
@@ -122,7 +109,7 @@ class Trebuchet(object):
         line=self.line,
         glyph=self.glyph,
         children=self.children,
-        all_glyphs=self.all_glyphs)
+        config=self.config)
     if indent is not None:
       copy.indent = indent
     if line is not None:
@@ -131,28 +118,28 @@ class Trebuchet(object):
       copy.glyph = glyph
     if children is not None:
       copy.children = children
-    if all_glyphs is not None:
-      copy.all_glyphs = all_glyphs
 
     return copy
 
   def add_child(self, child):
     self.children.append(child)
 
-  def reorder(self, ordering):
+  def reorder(self, ordering=None):
     """
     Takes a list of glyphs and returns a reordered trebuchet instance.
     """
-    glyph_set = set(ordering).symmetric_difference(self.all_glyphs)
+    if ordering is None:
+      ordering = self.config.glyphs
+    glyph_set = set(ordering).symmetric_difference(self.config.glyphs)
     if len(glyph_set) > 0:
       raise Exception(
           "Not all glyphs present in reordering!"
           " reorder must be called with all glyphs from initialization."
-          " %s vs %s" % (ordering, set(self.all_glyphs.keys())))
+          " %s vs %s" % (ordering, self.config.glyphs))
     return self.__reorder(ordering)
 
   def __reorder(self, ordering):
-    reordered_children = defaultdict(lambda: [])
+    reordered_children = defaultdict(lambda: list())
     for child in self.children:
       reordered_children[child.glyph].append(child.__reorder(ordering))
     new_children = []
@@ -161,8 +148,6 @@ class Trebuchet(object):
     return self.__copy__(children=new_children)
 
   def filter(self, filterfn):
-    # TODO: maybe there should be keep/discard/delegate instead?
-    #       this potentially allows for keeping done parents w/undone children?
     """
     Accepts a Glpyh predicate function.
 
@@ -192,56 +177,97 @@ class Trebuchet(object):
     return "Trebuchet(line='" + self.line +"', children=[" + children_repr + "])"
 
 
+class TrebuchetConfig(object):
+
+  def __init__(self, glyphs, done_glyphs, delim, rocks=None):
+    self._glyphs = glyphs
+    self._done_glyphs = done_glyphs
+    self._delimiter = delim
+    self._rocks = rocks
+    if self._delimiter not in self.glyphs:
+      raise Exception("Delimiter must be specified in glyph list!")
+
+  @property
+  def done_glyphs(self):
+    return self._done_glyphs
+
+  @property
+  def glyphs(self):
+    """
+    Returns all the glyphs used, in the order they should be sorted.
+    """
+    return self._glyphs
+
+  @property
+  def delimiter(self):
+    return self._delimiter
+
+  def rocks(self):
+    return list(self._rocks.keys())
+
+  def rock(self, rock):
+    return self._rocks[rock]
+
+  @staticmethod
+  def from_ini(filename):
+    cfg = ConfigParser()
+    cfg.read([filename])
+    
+    delim = cfg.get("trebuchet", "glyphs.delimiter")
+    done_glyphs = cfg.get("trebuchet", "glyphs.done").split(",")
+
+    items = []
+    items.extend(cfg.get("trebuchet", "glyphs.in_progress").split(","))
+    items.append(delim)
+    items.extend(done_glyphs)
+
+    rocks = {}
+    rocks_keys = cfg.get("trebuchet", "rocks").split(",")
+    for rock in rock_keys:
+      rocks[rock] = cfg.get("trebuchet", rock)
+
+    return TrebuchetConfig(
+        glyphs=items,
+        done_glyphs=done_glyphs,
+        delim=delim,
+        rocks=rocks)
+
+
 class TrebuchetApp(object):
 
-  def __init__(self, root, misc, in_progress, done):
-    self.root = root
-    self.misc_glyphs = misc
-    self.in_progress_glyphs = in_progress
-    self.misc_glyphs_before = True
-    self.done_glyphs = done
+  def __init__(self, config):
+    self.config = config
     pass # ???
 
-  def advance(self):
+  def throw_all(self):
+    """
+    do something for all the rocks
+    """
     pass
 
-  def __glyph_ordering(self):
-    glyph_order = []
-    if self.misc_glyphs_before:
-      glyph_order.extend(self.misc_glyphs)
-      glyph_order.extend(self.in_progress_glyphs)
-    else:
-      glyph_order.extend(self.in_progress_glyphs)
-      glyph_order.extend(self.misc_glyphs)
-    glyph_order.append("---")
-    glyph_order.extend(self.done_glyphs)
-
-    return glyph_order
-
-  def advance_tree(self, node):
+  def advance_rock(self, node):
     # Setup glyph ordering:
-    glyph_order = self.__glyph_ordering()
+    glyph_order = self.config.glyphs
 
     # First reorder the node, then perform complex filtering.
     root = node.reorder(glyph_order)
   
     new_children = [] 
-    child_iter = iter(root.children) 
-    current = None
 
     # copy items that aren't done yet.
-    while True:
-      current = next(child_iter)
-      if current.glyph == "---":
+    for current in root.children:
+      if current.glyph in self.config.done_glyphs:
+        break
+      if current.glyph == self.config.delimiter:
+        new_children.append(current)
         break
       # Remove items that are done.
       new_children.append(current.filter(
-          lambda glyph: glyph not in self.done_glyphs))
+          lambda glyph: glyph not in self.config.done_glyphs))
 
-    new_children.append(current)
+    # At the end of the previous loop we added a marker to denote the end of the set of stuff.
 
-    # copy done items.
-
+    # now copy done items.
     for child in root.children:
       # you'd expect that here we'd only keep done items, but we actually
       # have to keep the whole tree leading up to the done things. ie, when a
@@ -272,7 +298,7 @@ class TrebuchetApp(object):
 
   def copy_done_items(self, node):
     # Keep items with a done glyph, and all their sub items.
-    if node.glyph in self.done_glyphs:
+    if node.glyph in self.config.done_glyphs:
       return node
 
     # check to see if any of the nodes children make it worth keeping.
@@ -288,9 +314,25 @@ class TrebuchetApp(object):
       node.children = kept_children
       return node
     return None
+
  
 # various utilities
+
 
 def count_starting_whitespace(string):
   return len(string) - len(string.lstrip()) 
 
+
+if __name__ == "__main__":
+  import click
+  from configparser import ConfigParser
+
+
+  @click.option("--config", "-c", default=None)
+  def main(config):
+    cfg = ConfigParser()
+    cfg.read([config])
+    pass
+
+
+  main()

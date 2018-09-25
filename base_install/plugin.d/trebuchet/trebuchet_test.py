@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
 
-from trebuchet import TrebuchetFactory, Trebuchet, TrebuchetApp
+from trebuchet import Trebuchet, TrebuchetApp, TrebuchetConfig, TrebuchetParser
+
+CONFIG = TrebuchetConfig(["*", "[]", "---", "[/]", "[x]"], ["[/]", "[x]"], "---")
 
 def correct_parse(string):
-  return (
-    TrebuchetFactory()
-      .with_glyph("[x]")
-      .with_glyph("[/]")
-      .with_glyph("[]")
-      .with_glyph("*")
-      .with_glyph("---", has_indent=False)
-      .create_from(string=string))
+  return TrebuchetParser(CONFIG).create_from(string=string)
 
 def fail_parse(string):
   try:
-    (TrebuchetFactory()
-      .with_glyph("*")
-      .with_glyph("---", has_indent=False)
-      .create_from(string=string))
+    TrebuchetParser(TrebuchetConfig(["*", "---"], [], "---")).create_from(string=string)
   except Exception as e:
     print(e)
 
@@ -48,7 +40,7 @@ if __name__ == "__main__":
       .filter(lambda glyph: glyph not in ["[x]", "[/]"])
       .str())
   print("###")
-  print(TrebuchetApp(catapult, ["*"], ["[]"], ["[/]", "[x]"]).advance_tree(catapult).str())
+  print(TrebuchetApp(CONFIG).advance_rock(catapult).str())
   print("###")
   fail_parse(
     """
