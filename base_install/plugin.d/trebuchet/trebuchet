@@ -245,27 +245,30 @@ class TrebuchetApp(object):
     """
     pass
 
-  def advance_rock(self, node):
-    # Setup glyph ordering:
-    glyph_order = self.config.glyphs
-
+  def advance_trebuchet(self, node):
     # First reorder the node, then perform complex filtering.
-    root = node.reorder(glyph_order)
+    root = node.reorder(self.config.glyphs)
   
     new_children = [] 
 
     # copy items that aren't done yet.
     for current in root.children:
-      if current.glyph in self.config.done_glyphs:
+      if current.glyph == self.config.delimiter or current.glyph in self.config.done_glyphs:
+        # items are sorted, we should see a delimiter first. Baring that, we'll
+        # encounter items that are done.
         break
-      if current.glyph == self.config.delimiter:
-        new_children.append(current)
-        break
-      # Remove items that are done.
+      # Remove items that are done using filter.
       new_children.append(current.filter(
           lambda glyph: glyph not in self.config.done_glyphs))
 
-    # At the end of the previous loop we added a marker to denote the end of the set of stuff.
+    # At the end of the previous loop we add a marker
+    # to denote the end of the "not done" items.
+    new_children.append(
+        Trebuchet(
+            indent=0,
+            line=self.config.delimiter,
+            glyph=self.config.delimiter,
+            config=self.config))
 
     # now copy done items.
     for child in root.children:
