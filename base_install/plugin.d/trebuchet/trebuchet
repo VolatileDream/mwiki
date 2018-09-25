@@ -4,6 +4,7 @@ from collections import defaultdict
 from configparser import ConfigParser
 from copy import copy
 import enum
+import os
 
 class TrebuchetParser(object):
 
@@ -318,7 +319,63 @@ class TrebuchetApp(object):
       return node
     return None
 
- 
+
+class WatermarkFile(object):
+  """
+  Class to provide a high watermark of sorts with two files.
+  One provides content, the other the monotonic watermark.
+
+  Expected operation order:
+
+  init(mark, content)
+  if last() != current_watermark() and has_content():
+    with content_filehandle() as file:
+      process(file)
+    update(current_watermark())
+
+  This assumes the user has some `current_watermark` function.
+  """
+
+  def __init__(self, mark_name, content_name):
+    self.mark = mark_name
+    self.content = content_name
+
+  def last(self):
+    """
+    Returns the last watermark, or None.
+    """
+    try:
+      with open(self.mark_name) as file:
+        return file.readline().strip()
+    except FileNotFound:
+      return None
+
+  def has_content(self):
+    """
+    Returns true if the last watermark has content.
+    """
+    try:
+      return os.stat(self.content).st_size > 0
+    except FileNotFound:
+      return False
+
+  def content_filehandle(self):
+    """
+    Returns an open file object to the content file.
+
+    Is both readable and writeable in byte mode.
+    """
+    return open(self.content, "r+")
+
+  def update(self, next):
+    try:
+      os.truncate(self.content, 0)
+    except FileNotFound:
+      pass
+    with open(self.mark_name) as file:
+      file.write(next)
+      file.write("\n") # be nice to text editors
+
 # various utilities
 
 
