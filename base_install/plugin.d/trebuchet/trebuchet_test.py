@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
+import sys
 from trebuchet import Trebuchet, TrebuchetApp, TrebuchetConfig, TrebuchetParser
 
-CONFIG = TrebuchetConfig(["*", "[]", "---", "[/]", "[x]"], ["[/]", "[x]"], "---")
+CONFIG = TrebuchetConfig(["#", "*", "[]", "---", "[/]", "[x]"], ["[/]", "[x]"], "---", {"rocks.daily": "%Y-%m-%d"})
 
 def correct_parse(string):
   return TrebuchetParser(CONFIG).create_from(string=string)
@@ -33,17 +34,20 @@ if __name__ == "__main__":
                """))
   print(catapult.str())
   print("###")
-  print(catapult.reorder(["*", "[]", "---", "[/]", "[x]"]).str())
+  print(catapult.reorder().str())
   print("###")
   print(catapult
-      .reorder(["*", "[]", "---", "[/]", "[x]"])
+      .reorder()
       .filter(lambda glyph: glyph not in ["[x]", "[/]"])
       .str())
-  print("###")
-  print(TrebuchetApp(CONFIG).advance_rock(catapult).str())
   print("###")
   fail_parse(
     """
     * hello
     - world
     """)
+  print("###")
+
+  cfg = TrebuchetConfig.from_ini("config.ini")
+  app = TrebuchetApp(cfg)
+  print(app.load_rock("rocks.daily").str())
