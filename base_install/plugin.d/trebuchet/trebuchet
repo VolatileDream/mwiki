@@ -6,6 +6,7 @@ from copy import copy
 from datetime import datetime
 import enum
 import os
+import subprocess
 
 class TrebuchetParser(object):
 
@@ -181,11 +182,12 @@ class Trebuchet(object):
 
 class TrebuchetConfig(object):
 
-  def __init__(self, glyphs, done_glyphs, delim, rocks=None):
+  def __init__(self, glyphs, done_glyphs, delim, rocks=None, rocks_dict=None):
     self._glyphs = glyphs
     self._done_glyphs = done_glyphs
     self._delimiter = delim
     self._rocks = rocks
+    self._rocks_dict = rocks_dict
     if self._delimiter not in self.glyphs:
       raise Exception("Delimiter must be specified in glyph list!")
 
@@ -205,10 +207,10 @@ class TrebuchetConfig(object):
     return self._delimiter
 
   def rocks(self):
-    return list(self._rocks.keys())
+    return list(self._rocks)
 
   def rock(self, rock):
-    return self._rocks[rock]
+    return self._rocks_dict[rock]
 
   @staticmethod
   def from_ini(filename):
@@ -235,7 +237,8 @@ class TrebuchetConfig(object):
         glyphs=items,
         done_glyphs=done_glyphs,
         delim=delim,
-        rocks=rocks)
+        rocks=rock_keys,
+        rocks_dict=rocks)
 
 
 class TrebuchetApp(object):
