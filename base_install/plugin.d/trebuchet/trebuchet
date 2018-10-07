@@ -245,58 +245,49 @@ class TrebuchetApp(object):
 
   def __init__(self, config):
     self.config = config
+    self.loaded_rocks = {}
     pass # ???
 
-  def throw_all(self):
-    """
-    do something for all the rocks
-    """
-    pass
+  def edit(self, rock):
+    self.update(rock, prompt=True)
+    os.spawnlp(os.P_WAIT, "sensible-editor", "sensible-editor", rock + "-content")
 
-  def __rock_watermark(self, rock):
+  def __rock(self, rock):
     if rock not in self.config.rocks():
       raise Exception("No such rock: %s" % rock)
-    return WatermarkFile(rock + "-last", rock + "-content")
+    if rock not in self.loaded_rocks:
+      self.loaded_rocks[rock] = Rock(rock, self.config.rock(rock))
+    return self.loaded_rocks[rock]
 
-  def throw_rock(self, rock):
-    if rock not in self.config.rocks():
-      raise Exception("No such rock: %s" % rock)
-    rock_format = self.config.rock(rock)
-    current = datetime.now().strftime(rock_format)
+  def update(self, rock_name, prompt=False):
+    rock = self.__rock(rock_name)
+    trebuchet = None # declare at more recent scope
     
-    watermark = self.__rock_watermark(rock)
-    if watermark.last() != current:
-      trebuchet = None # declare outside of with scope
-      if watermark.has_content():
-        with watermark.content_filehandle() as file:
-          parser = TrebuchetParser(self.config)
-          trebuchet = parser.create_from(fileio=file)
-          print(trebuchet.str())
+    if rock.can_update():
+      if prompt:
+        response = input("An entry already exists for %s, commit? (y/N) " % rock)
+        if response != "Y" and response != "y":
+          return
+      trebuchet = self.__load(rock)
 
-        # Compute the new trebuchet
-        trebuchet = self.advance_trebuchet(trebuchet)
-        print(trebuchet.str())
+      # Compute the new trebuchet
+      trebuchet = self.advance_trebuchet(trebuchet)
+      write_to_wiki(rock.last(), trebuchet)
 
-      watermark.update(current)
+    rock.update(current)
 
-      if trebuchet:
-        # TODO do something with the trebuchet before filtering it!
-
-        # Now prep the trebuchet for the next iteration.
-        trebuchet = trebuchet.filter(lambda glyph: glyph not in self.config.done_glyphs)
-        with watermark.content_filehandle() as file:
-          file.write(trebuchet.str())
+    if trebuchet:
+      # Now prep the trebuchet for the next iteration, keep everything before the delimiter.
+      trebuchet = trebuchet.filter(latch(lambda glyph: glyph != self.config.delimiter))
+      with rock.content_handle() as file:
+        file.write(trebuchet.str())
     pass
 
-  def load_rock(self, rock):
-    if rock not in self.config.rocks():
-      raise Exception("No such rock: %s" % rock)
-
-    watermark = self.__rock_watermark(rock)
-    with watermark.content_filehandle() as file:
+  def __load(self, rock):
+    """Load content from a rock"""
+    with rock.content_filehandle() as file:
       parser = TrebuchetParser(self.config)
       return parser.create_from(fileio=file)
-    
 
   def advance_trebuchet(self, node):
     # First reorder the node, then perform complex filtering.
@@ -372,6 +363,34 @@ class TrebuchetApp(object):
     return None
 
 
+class Rock(object):
+  """
+  Storage encapsulation for the Rock, enabling easy status checking.
+  """
+
+  def __init__(self, name, time_format, watermark=None):
+    self.name = name
+    self.time_format = time_format
+    if watermark is None:
+      watermark = WatermarkFile(name + "-last", name + "-content")
+    self.watermark = watermark
+
+  def __current(self):
+    return datetime.now().strftime(self.time_format)
+
+  def last(self):
+    return self.watermark.last()
+ 
+  def can_update(self):
+    return self.__current() != self.watermark.last()
+
+  def update(self):
+    self.watermark.update(self.__current())
+
+  def content_handle(self):
+    return watermark.content_filehandle()
+
+
 class WatermarkFile(object):
   """
   Class to provide a high watermark of sorts with two files.
@@ -430,6 +449,18 @@ class WatermarkFile(object):
 
 # various utilities
 
+# TODO is there a better box type than this?
+def latch(predicate):
+  import functools
+  result = [True]
+  @functools.wraps(predicate)
+  def fn(*args, **kvargs):
+    r = result[0] and predicate(*args, **kvargs)
+    result[0] = r
+    return result[0]
+
+  return fn
+    
 
 def count_starting_whitespace(string):
   return len(string) - len(string.lstrip()) 
@@ -438,16 +469,78 @@ def strip_terminal_newline(generator):
   for line in generator:
     yield line.rstrip("\n")
 
+def write_to_wiki(entry_name, trebuchet):
+  # Take advantage of the mwiki command.
+  with subprocess.Popen(
+          ["mwiki", "edit", entry_name],
+          stdin=subprocess.PIPE,
+          universal_newlines=True) as proc:
+    proc.stdin.write(trebuchet.str())
+    proc.stdin.close()
+
+    # mwiki might be rebuilding everything...
+    proc.wait()
+
+    if proc.returncode != 0:
+      raise Exception("mwiki didn't exit cleanly! Return code: %s" % proc.returncode)
+
+
+def flag_parser():
+  import argparse
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "--config", "-c",
+      type=TrebuchetConfig.from_ini,
+      help="Configuration ini file.")
+  parser.add_argument(
+      "--rock", "-r",
+      type=lambda arg: "rocks." + arg,
+      help="Rock")
+
+  return parser
+
+
+def main():
+  actions = {
+    "edit" : TrebuchetApp.edit,
+    "update" : TrebuchetApp.update,
+  }
+
+  import sys
+
+  _, command, *rest = sys.argv
+  args = flag_parser().parse_args(rest)
+  app = TrebuchetApp(args.config)
+
+  if command not in actions:
+    raise Exception("Could not find command: %s", command)
+
+  actions[command](app, args.rock)
+
 if __name__ == "__main__":
-  import click
-  from configparser import ConfigParser
-
-
-  @click.option("--config", "-c", default=None)
-  def main(config):
-    cfg = ConfigParser()
-    cfg.read([config])
-    pass
-
-
   main()
+
+  # TODO figure out how commands work.
+
+  # What's the default for edit?
+  #  * Do something like `journal` which does a reasonable thing by default.
+  #  * Check everything in need of updates, and then update from largest to smallest?
+  #   > trebuchet
+  #   The following time-spans need to be updated, which should go first?
+  #     1) yearly
+  #     2) monthly
+  #     3) weekly
+  #     4) daily
+  #   (default: 1) >
+  #   $ sensible-editor "$1"
+  # 
+  # edit [span] -> check if it needs to update, then edit it.
+  # update [span] -> check if it needs to update
+  #   * don't copy `journal`s behaviour here. No force updates.
+
+  # Do multiple files need to be opened all at once?
+  # Maybe support time travel with --date or --time flag?
+  # Updates need to be ordered to prevent funny time change things?
+  #   Like when all of the year, month, and week change? -> what gets updated first?
+  # This maybe only matters if there's automated "up" movement?
+
