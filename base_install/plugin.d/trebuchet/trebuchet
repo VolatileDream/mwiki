@@ -8,7 +8,7 @@ import enum
 import os
 import subprocess
 
-class TrebuchetParser(object):
+class Parser(object):
 
   def __init__(self, cfg):
     self.init = False
@@ -37,7 +37,7 @@ class TrebuchetParser(object):
     # Hold a permanent reference to the root. The root is special, and has -1
     # indent, to ensure that no other item could possibly have indent equal to
     # it.
-    root = Trebuchet(indent=-1, line="", config=self.config)
+    root = RockNode(indent=-1, line="", config=self.config)
 
     # The stack of parent Trebuchet items.
     stack = [root]
@@ -57,7 +57,7 @@ class TrebuchetParser(object):
         else:
           indent = count_starting_whitespace(line)
 
-      current = Trebuchet(indent=indent, line=line, glyph=glyph, config=self.config)
+      current = RockNode(indent=indent, line=line, glyph=glyph, config=self.config)
 
       # this item may need to be placed into the list properly.
       if not has_indent:
@@ -91,7 +91,7 @@ class TrebuchetParser(object):
     return None, None
 
 
-class Trebuchet(object):
+class RockNode(object):
   
   def __init__(self, indent=0, line=None, glyph=None, children=None, config=None):
     self.indent = indent
@@ -107,7 +107,7 @@ class Trebuchet(object):
     Implement functionality to use copy.copy, but also
     provide an easy mechanism to change some subfields.
     """
-    copy = Trebuchet(
+    copy = RockNode(
         indent=self.indent,
         line=self.line,
         glyph=self.glyph,
@@ -174,20 +174,15 @@ class Trebuchet(object):
       newline = ""
     return self.line + newline + children_repr
 
-  def __repr__(self):
-    children_repr = ",".join([repr(c) for c in self.children])
-    newline = ""
-    return "Trebuchet(line='" + self.line +"', children=[" + children_repr + "])"
-
 
 class TrebuchetConfig(object):
 
-  def __init__(self, glyphs, done_glyphs, delim, rocks=None, rocks_dict=None):
+  def __init__(self, glyphs, done_glyphs, delim, intervals=None, intervals_dict=None):
     self._glyphs = glyphs
     self._done_glyphs = done_glyphs
     self._delimiter = delim
-    self._rocks = rocks
-    self._rocks_dict = rocks_dict
+    self._intervals = intervals
+    self._intervals_dict = intervals_dict
     if self._delimiter not in self.glyphs:
       raise Exception("Delimiter must be specified in glyph list!")
 
@@ -206,11 +201,11 @@ class TrebuchetConfig(object):
   def delimiter(self):
     return self._delimiter
 
-  def rocks(self):
-    return list(self._rocks)
+  def intervals(self):
+    return list(self._intervals)
 
-  def rock(self, rock):
-    return self._rocks_dict[rock]
+  def interval(self, interval_name):
+    return self._intervals_dict[interval_name]
 
   @staticmethod
   def from_ini(filename):
@@ -225,147 +220,25 @@ class TrebuchetConfig(object):
     items.append(delim)
     items.extend(done_glyphs)
 
-    rocks = {}
-    rock_keys = cfg.get("trebuchet", "rocks").split(",")
-    bad_rocks = [ r for r in rock_keys if not r.startswith("rocks.")]
-    if len(bad_rocks) > 0:
-      raise Exception("Found improperly named rocks: %s" % bad_rocks)
-    for rock in rock_keys:
-      rocks[rock] = cfg.get("trebuchet", rock, raw=True)
+    intervals = {}
+    interval_keys = cfg.get("trebuchet", "intervals").split(",")
+    bad_intervals = [ r for r in interval_keys if not r.startswith("intervals.")]
+    if len(bad_intervals) > 0:
+      raise Exception("Found improperly named intervals: %s" % bad_intervals)
+    for interval in interval_keys:
+      intervals[interval] = cfg.get("trebuchet", interval, raw=True)
 
     return TrebuchetConfig(
         glyphs=items,
         done_glyphs=done_glyphs,
         delim=delim,
-        rocks=rock_keys,
-        rocks_dict=rocks)
+        intervals=interval_keys,
+        intervals_dict=intervals)
 
 
-class TrebuchetApp(object):
-
-  def __init__(self, config):
-    self.config = config
-    self.loaded_rocks = {}
-    pass # ???
-
-  def edit(self, rock):
-    self.update(rock, prompt=True)
-    os.spawnlp(os.P_WAIT, "sensible-editor", "sensible-editor", rock + "-content")
-
-  def __rock(self, rock):
-    if rock not in self.config.rocks():
-      raise Exception("No such rock: %s" % rock)
-    if rock not in self.loaded_rocks:
-      self.loaded_rocks[rock] = Rock(rock, self.config.rock(rock))
-    return self.loaded_rocks[rock]
-
-  def update(self, rock_name, prompt=False):
-    rock = self.__rock(rock_name)
-    trebuchet = None # declare at more recent scope
-    
-    if rock.can_update():
-      if prompt:
-        response = input("An entry already exists for %s, commit? (y/N) " % rock)
-        if response != "Y" and response != "y":
-          return
-      trebuchet = self.__load(rock)
-
-      # Compute the new trebuchet
-      trebuchet = self.advance_trebuchet(trebuchet)
-      write_to_wiki(rock.last(), trebuchet)
-
-    rock.update(current)
-
-    if trebuchet:
-      # Now prep the trebuchet for the next iteration, keep everything before the delimiter.
-      trebuchet = trebuchet.filter(latch(lambda glyph: glyph != self.config.delimiter))
-      with rock.content_handle() as file:
-        file.write(trebuchet.str())
-    pass
-
-  def __load(self, rock):
-    """Load content from a rock"""
-    with rock.content_filehandle() as file:
-      parser = TrebuchetParser(self.config)
-      return parser.create_from(fileio=file)
-
-  def advance_trebuchet(self, node):
-    # First reorder the node, then perform complex filtering.
-    root = node.reorder(self.config.glyphs)
-  
-    new_children = [] 
-
-    # copy items that aren't done yet.
-    for current in root.children:
-      if current.glyph == self.config.delimiter or current.glyph in self.config.done_glyphs:
-        # items are sorted, we should see a delimiter first. Baring that, we'll
-        # encounter items that are done.
-        break
-      # Remove items that are done using filter.
-      new_children.append(current.filter(
-          lambda glyph: glyph not in self.config.done_glyphs))
-
-    # At the end of the previous loop we add a marker
-    # to denote the end of the "not done" items.
-    new_children.append(
-        Trebuchet(
-            indent=0,
-            line=self.config.delimiter,
-            glyph=self.config.delimiter,
-            config=self.config))
-
-    # now copy done items.
-    for child in root.children:
-      # you'd expect that here we'd only keep done items, but we actually
-      # have to keep the whole tree leading up to the done things. ie, when a
-      # root isn't done, but has some done sub items. We want to keep the sub
-      # items. ex:
-      #
-      # [] not done
-      #   * note
-      #   [x] done
-      # ---
-      #
-      # becomes
-      #
-      # [] not done
-      #   * note
-      # ---
-      # [] not done
-      #   [x] done
-      #
-      current = self.copy_done_items(child)
-      if current:
-        new_children.append(current)
-
-    # we're going to destructively mutate, create a copy.
-    root = copy(root)
-    root.children = new_children
-    return root
-
-  def copy_done_items(self, node):
-    # Keep items with a done glyph, and all their sub items.
-    if node.glyph in self.config.done_glyphs:
-      return node
-
-    # check to see if any of the nodes children make it worth keeping.
-    kept_children = []
-    for child in node.children:
-      copied = self.copy_done_items(child)
-      if copied:
-        kept_children.append(copied)
-
-    # If this had an item we want to keep as a child, keep it as well.
-    if len(kept_children) > 0:
-      node = copy(node)
-      node.children = kept_children
-      return node
-    return None
-
-
-class Rock(object):
+class Interval(object):
   """
-  Storage encapsulation for the Rock, enabling easy status checking.
+  Storage encapsulation for the interval, enabling easy status checking.
   """
 
   def __init__(self, name, time_format, watermark=None):
@@ -447,6 +320,128 @@ class WatermarkFile(object):
       file.write(next)
       file.write("\n") # be nice to text editors
 
+class TrebuchetApp(object):
+
+  def __init__(self, config):
+    self.config = config
+    self.loaded = {}
+    pass # ???
+
+  def edit(self, interval_name):
+    self.update(interval_name, prompt=True)
+    os.spawnlp(os.P_WAIT, "sensible-editor", "sensible-editor", interval_name + "-content")
+
+  def __interval(self, interval_name):
+    if interval_name not in self.config.intervals():
+      raise Exception("No such interval: %s" % interval_name)
+    if interval_name not in self.loaded:
+      self.loaded[interval_name] = Interval(interval_name, self.config.interval(interval_name))
+    return self.loaded[interval_name]
+
+  def update(self, interval_name, prompt=False):
+    interval = self.__interval(interval_name)
+    trebuchet = None # declare at more recent scope
+    
+    if interval.can_update():
+      if prompt:
+        response = input("An entry already exists for %s, commit? (y/N) " % interval_name)
+        if response != "Y" and response != "y":
+          return
+      trebuchet = self.__load(interval)
+
+      # Compute the new trebuchet
+      trebuchet = self.advance_trebuchet(trebuchet)
+      write_to_wiki(interval.last(), trebuchet)
+
+    interval.update(current)
+
+    if trebuchet:
+      # Now prep the trebuchet for the next iteration, keep everything before the delimiter.
+      trebuchet = trebuchet.filter(latch(lambda glyph: glyph != self.config.delimiter))
+      with interval.content_handle() as file:
+        file.write(trebuchet.str())
+    pass
+
+  def __load(self, interval):
+    """Load content from an interval"""
+    with interval.content_filehandle() as file:
+      parser = Parser(self.config)
+      return parser.create_from(fileio=file)
+
+  def advance_trebuchet(self, node):
+    # First reorder the node, then perform complex filtering.
+    root = node.reorder(self.config.glyphs)
+  
+    new_children = [] 
+
+    # copy items that aren't done yet.
+    for current in root.children:
+      if current.glyph == self.config.delimiter or current.glyph in self.config.done_glyphs:
+        # items are sorted, we should see a delimiter first. Baring that, we'll
+        # encounter items that are done.
+        break
+      # Remove items that are done using filter.
+      new_children.append(current.filter(
+          lambda glyph: glyph not in self.config.done_glyphs))
+
+    # At the end of the previous loop we add a marker
+    # to denote the end of the "not done" items.
+    new_children.append(
+        RockNode(
+            indent=0,
+            line=self.config.delimiter,
+            glyph=self.config.delimiter,
+            config=self.config))
+
+    # now copy done items.
+    for child in root.children:
+      # you'd expect that here we'd only keep done items, but we actually
+      # have to keep the whole tree leading up to the done things. ie, when a
+      # root isn't done, but has some done sub items. We want to keep the sub
+      # items. ex:
+      #
+      # [] not done
+      #   * note
+      #   [x] done
+      # ---
+      #
+      # becomes
+      #
+      # [] not done
+      #   * note
+      # ---
+      # [] not done
+      #   [x] done
+      #
+      current = self.copy_done_items(child)
+      if current:
+        new_children.append(current)
+
+    # we're going to destructively mutate, create a copy.
+    root = copy(root)
+    root.children = new_children
+    return root
+
+  def copy_done_items(self, node):
+    # Keep items with a done glyph, and all their sub items.
+    if node.glyph in self.config.done_glyphs:
+      return node
+
+    # check to see if any of the nodes children make it worth keeping.
+    kept_children = []
+    for child in node.children:
+      copied = self.copy_done_items(child)
+      if copied:
+        kept_children.append(copied)
+
+    # If this had an item we want to keep as a child, keep it as well.
+    if len(kept_children) > 0:
+      node = copy(node)
+      node.children = kept_children
+      return node
+    return None
+
+
 # various utilities
 
 # TODO is there a better box type than this?
@@ -465,9 +460,11 @@ def latch(predicate):
 def count_starting_whitespace(string):
   return len(string) - len(string.lstrip()) 
 
+
 def strip_terminal_newline(generator):
   for line in generator:
     yield line.rstrip("\n")
+
 
 def write_to_wiki(entry_name, trebuchet):
   # Take advantage of the mwiki command.
@@ -493,9 +490,9 @@ def flag_parser():
       type=TrebuchetConfig.from_ini,
       help="Configuration ini file.")
   parser.add_argument(
-      "--rock", "-r",
-      type=lambda arg: "rocks." + arg,
-      help="Rock")
+      "--interval", "-r",
+      type=lambda arg: "interval." + arg,
+      help="Interval")
 
   return parser
 
@@ -515,7 +512,7 @@ def main():
   if command not in actions:
     raise Exception("Could not find command: %s", command)
 
-  actions[command](app, args.rock)
+  actions[command](app, args.interval)
 
 if __name__ == "__main__":
   main()
