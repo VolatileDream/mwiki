@@ -241,15 +241,31 @@ class Interval(object):
   Storage encapsulation for the interval, enabling easy status checking.
   """
 
-  def __init__(self, name, time_format, watermark=None):
+  def __init__(self, name, time_format, time_provider=None, watermark=None):
+    """
+    Create an interval.
+      name:
+          - the (descriptive) name for the interval, sets of intervals are
+            usually required to have unique names.
+          - also used for file io
+      time_format:
+          - a time format usable by datetime.strftime
+      time_provider:
+          - function that returns a datetime object, when given no arguments
+      watermark:
+          - an optional WatermarkFile object to use, rather than generating one with `name`
+    """
     self.name = name
     self.time_format = time_format
+    if time_provider is None:
+      time_provider = datetime.now
+    self.time_provider = time_provider
     if watermark is None:
       watermark = WatermarkFile(name + "-last", name + "-content")
     self.watermark = watermark
 
   def __current(self):
-    return datetime.now().strftime(self.time_format)
+    return self.time_provider().strftime(self.time_format)
 
   def last(self):
     return self.watermark.last()
@@ -261,7 +277,7 @@ class Interval(object):
     self.watermark.update(self.__current())
 
   def content_handle(self):
-    return watermark.content_filehandle()
+    return self.watermark.content_filehandle()
 
 
 class WatermarkFile(object):
@@ -322,21 +338,27 @@ class WatermarkFile(object):
 
 class TrebuchetApp(object):
 
-  def __init__(self, config):
+  def __init__(self, config, fixed_time=None):
     self.config = config
     self.loaded = {}
+    if fixed_time is None:
+      self.fixed_time = None
+    else:
+      self.fixed_time = lambda: fixed_time
     pass # ???
+
+  def prompt(self, _arg1, _arg2):
+    if self.fixed_time:
+      print(self.fixed_time())
+    else:
+      print("none")
+
+  def todo(self, interval_name):
+    pass
 
   def edit(self, interval_name):
     self.update(interval_name, prompt=True)
     os.spawnlp(os.P_WAIT, "sensible-editor", "sensible-editor", interval_name + "-content")
-
-  def __interval(self, interval_name):
-    if interval_name not in self.config.intervals():
-      raise Exception("No such interval: %s" % interval_name)
-    if interval_name not in self.loaded:
-      self.loaded[interval_name] = Interval(interval_name, self.config.interval(interval_name))
-    return self.loaded[interval_name]
 
   def update(self, interval_name, prompt=False):
     interval = self.__interval(interval_name)
@@ -347,13 +369,13 @@ class TrebuchetApp(object):
         response = input("An entry already exists for %s, commit? (y/N) " % interval_name)
         if response != "Y" and response != "y":
           return
-      trebuchet = self.__load(interval)
+      trebuchet = self.__content(interval)
 
       # Compute the new trebuchet
       trebuchet = self.advance_trebuchet(trebuchet)
       write_to_wiki(interval.last(), trebuchet)
 
-    interval.update(current)
+    interval.update()
 
     if trebuchet:
       # Now prep the trebuchet for the next iteration, keep everything before the delimiter.
@@ -362,9 +384,22 @@ class TrebuchetApp(object):
         file.write(trebuchet.str())
     pass
 
-  def __load(self, interval):
+  def load(self, interval_name):
+    return self.__content(self.__interval(interval_name))
+
+  def __interval(self, interval_name):
+    if interval_name not in self.config.intervals():
+      raise Exception("No such interval: %s" % interval_name)
+    if interval_name not in self.loaded:
+      self.loaded[interval_name] = Interval(
+          interval_name,
+          self.config.interval(interval_name),
+          self.fixed_time)
+    return self.loaded[interval_name]
+
+  def __content(self, interval):
     """Load content from an interval"""
-    with interval.content_filehandle() as file:
+    with interval.content_handle() as file:
       parser = Parser(self.config)
       return parser.create_from(fileio=file)
 
@@ -482,17 +517,32 @@ def write_to_wiki(entry_name, trebuchet):
       raise Exception("mwiki didn't exit cleanly! Return code: %s" % proc.returncode)
 
 
-def flag_parser():
+def flag_parser(commands):
   import argparse
   parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "command",
+      nargs="?", # may not be present
+      default=None,
+      type=str,
+      choices=commands,
+      help="Command to run.")
   parser.add_argument(
       "--config", "-c",
       type=TrebuchetConfig.from_ini,
       help="Configuration ini file.")
   parser.add_argument(
-      "--interval", "-r",
-      type=lambda arg: "interval." + arg,
+      "--interval", "-i",
+      type=lambda arg: "intervals." + arg,
       help="Interval")
+  parser.add_argument(
+      "--date", "-d",
+      type=lambda arg: datetime.utcfromtimestamp(int(arg)),
+      default=None,
+      metavar="DATE",
+      help="act as though time is DATE and not 'now', takes a POSIX timestamp"
+          + " in UTC. The easiest way to populate this (on linux) is with:"
+          + " `date --date 'TEXT' +%%s`")
 
   return parser
 
@@ -501,18 +551,18 @@ def main():
   actions = {
     "edit" : TrebuchetApp.edit,
     "update" : TrebuchetApp.update,
+    "todo" : TrebuchetApp.todo,
   }
+  commands_to_run = list(actions.keys())
+
+  # Add the default action
+  actions[None] = TrebuchetApp.prompt
 
   import sys
 
-  _, command, *rest = sys.argv
-  args = flag_parser().parse_args(rest)
-  app = TrebuchetApp(args.config)
-
-  if command not in actions:
-    raise Exception("Could not find command: %s", command)
-
-  actions[command](app, args.interval)
+  args = flag_parser(commands_to_run).parse_args(sys.argv[1:])
+  app = TrebuchetApp(args.config, args.date)
+  actions[args.command](app, args.interval)
 
 if __name__ == "__main__":
   main()
@@ -530,12 +580,15 @@ if __name__ == "__main__":
   #     4) daily
   #   (default: 1) >
   #   $ sensible-editor "$1"
+  #  * Otherwise we'd have to figure out something with opening more than one
+  #    file at a time, which is a pain.
   # 
   # edit [span] -> check if it needs to update, then edit it.
   # update [span] -> check if it needs to update
   #   * don't copy `journal`s behaviour here. No force updates.
 
   # Do multiple files need to be opened all at once?
+  #  > don't really want to...
   # Maybe support time travel with --date or --time flag?
   # Updates need to be ordered to prevent funny time change things?
   #   Like when all of the year, month, and week change? -> what gets updated first?
