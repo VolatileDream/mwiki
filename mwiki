@@ -58,7 +58,9 @@ mwiki_init(){
   fi
 
   local project_dir="$1" ; shift
-  local mwiki_sub_dir="$1"; # This might be empty
+  # This might be empty, if it is, use "." as here. 
+  # to default to $project_dir.
+  local mwiki_sub_dir="${1:-.}";
 
   local MWIKI_CONF="$project_dir/$MWIKI_NAME"
 
