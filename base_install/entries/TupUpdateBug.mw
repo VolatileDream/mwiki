@@ -1,0 +1,13 @@
+There's a known #Bug with #Tup that means it doesn't pick up new files
+that have been added to existing wildcard matches.
+
+What does this mean in practice?
+
+There's a few plugins that use wildcards to process all files, and they
+won't get updated correctly when adding new files. Most notably, the
+#HtmlIndexPlugin works around this because #mwiki itself forces the
+recreation of the index on every update. However others, like the
+#MentionsPlugin aren't setup like this, and won't update existing pages
+when new ones are added.
+
+See https://github.com/gittup/tup/issues/214

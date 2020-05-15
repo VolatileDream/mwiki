@@ -1,0 +1,45 @@
+The Mentions plugin generates a list of links to a particular page.
+
+It's composed of two parts: the indexer, and extractor.
+
+## Indexer
+
+The indexer is run by the Tup rules provided by the plugin, and generates
+a map of pages that link to other pages. It's a relatively simple format,
+based on the hope that no page name contains the string " :: ".
+
+### Index Format
+<page> " :: " [#@]<page>
+
+## Extractor
+
+Another simple script, it generates a list of pages that link to the current
+page. It's invoked by the #RenderPlugin, which inserts the list of mentions
+at the bottom of the page.
+
+## Bugs?
+
+There's one tiny little problem with running the extractor: existing pages
+won't be updated when a new page that links to them is added. See
+#TupUpdateBug for more.
+
+---
+
+# Example
+
+> # Foo.mw
+> This is a cool page about Foo, which is so much better than #Bar!
+>
+> # Bar.mw
+> This is a page about Bar.
+
+## Outputs
+
+> # Bar.html
+> This is a page about Bar.
+>
+> ---
+>
+> Mentions
+>
+> #Foo
