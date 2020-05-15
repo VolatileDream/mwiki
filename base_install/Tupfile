@@ -14,7 +14,7 @@ include plugin.d/quotes/rules
 
 # --- #CorePlugins follow ---
 
-# join connects user generated content with data from plugins.
+# render connects user generated content with data from plugins.
 
 include plugin.d/render/rules
 
@@ -23,7 +23,7 @@ include plugin.d/render/rules
 
 include plugin.d/html_index/rules
 
-# The base plugin is used to generate the base page from the wiki entry
+# The html plugin is used to generate the html page from the wiki entry
 # itself, strictly doing the conversion between wiki syntax and html.
 # This rule MUST go after all plugin generated pages, because tup
 # declarations with wild cards are order dependant.

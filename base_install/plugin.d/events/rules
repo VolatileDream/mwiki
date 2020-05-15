@@ -1,7 +1,4 @@
 include_rules
 
-# this rule MUST go after all plugin generated pages, because tup
-# declarations with wild cards are unfortunately order dependant.
-
 : | entries/*.mw |> plugin.d/events/run > %o |> partial/~events.md <meta>
 
