@@ -1,4 +1,4 @@
 include_rules
 
-: partial/*.md <meta> |> ^ plugin.d/html_index > %o^ plugin.d/html_index/run partial > %o |> build/#.html
+: | <html> out-html/*.html |> ^ plugin.d/html_index > %o^ plugin.d/html_index/run out-html > %o |> out-html/#.html
 

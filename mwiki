@@ -186,7 +186,7 @@ mwiki_edit(){
 
   # this is an ugly hack to deal with tup incorrectly updating #.html
   if [ $created -eq 1 ]; then
-    rm "${MWIKI_PATH}/build/#.html" "${MWIKI_PATH}/build/~"*
+    rm "${MWIKI_PATH}/out-html/#.html" "${MWIKI_PATH}/out-html/~"*
   fi
 
   mwiki_tup
@@ -194,7 +194,7 @@ mwiki_edit(){
 
 mwiki_browse(){
   mwiki_require
-  cd "$MWIKI_PATH/build/"
+  cd "$MWIKI_PATH/out-html/"
 
   local entry="./#.html"
   if [ $# -gt 0 ]; then

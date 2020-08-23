@@ -2,12 +2,12 @@
 
 files() {
   # Get files from a directory.
-  find "$MWIKI_DIR" -type f -iname '*.md'
+  find "$MWIKI_DIR" -type f -iname '*.html' | grep -v '#.html'
 }
 
 file_name() {
   # convert from file path to file name.
-  sed -e 's_[^/]*/_#_g' -e 's_.md$__'
+  sed -e 's_[^/]*/_#_g' -e 's_.html$__'
 }
 
 create_dependencies() {
@@ -36,8 +36,8 @@ section() {
 }
 
 gen_index() {
-  local DATE_FORMAT='/....-..-..\.md$'
-  local GENERATED='/~[^/]*\.md$'
+  local DATE_FORMAT='/....-..-..\.html$'
+  local GENERATED='/~[^/]*\.html$'
   section "Journal" --reverse "$DATE_FORMAT"
   section "Wiki" --invert-match -e "$DATE_FORMAT" -e "$GENERATED"
   section "Generated Pages" "$GENERATED" 

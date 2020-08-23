@@ -11,7 +11,8 @@ run-query(){
 
   # all of our arguments get passed to search++, since
   # the user should know how to query us.
-  search++ --index-file build/swish++.index "$@" | awk ' /^#/ { print $0 ; next } { print $1 " " $4 " " $3 }' > "$tmp"
+  search++ --index-file out-bin/swish++.index "$@" |
+    awk ' /^#/ { print $0 ; next } { print $1 " " $4 " " $3 }' > "$tmp"
 
   # some of the files are temporary index files, strip out the
   # random temporary part, and use only their entry date
