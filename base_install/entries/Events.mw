@@ -1,5 +1,5 @@
 
-This plugin only really makes sense to use with the #Journal plugin.
+This plugin only really makes sense to use with the #JournalPlugin.
 
 It assumes that file names are dates, and looks for lines starting with "!event", "!event-start", and "!event-end" and then outputs these events into a single timeline file.
 

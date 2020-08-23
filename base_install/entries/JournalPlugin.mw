@@ -1,0 +1,13 @@
+The #JournalPlugin uses the wiki structure to house a journal.
+
+It includes a bash completion script, and several extensions which make working with dated entries easier.
+
+It takes advantage of setting $MWIKI_DIR before executing #mwiki to use it's own configuration.
+
+## Dependencies
+
+This depends on core linux utilities, while extensions to the journal also add dependencies on:
+
+ * swish++ (already depended on by the `plugin.d/search++`)
+ * git
+ * aspell

@@ -1,7 +1,7 @@
 
 This plugin searches for lines of text starting with "!quotes" and copies them into the "#~quotes" file in the wiki.
 
-Mostly useful for usage with the #Journal plugin, for when you hear something interesting.
+Mostly useful for usage with the #JournalPlugin, for when you hear something interesting.
 
 ---
 
