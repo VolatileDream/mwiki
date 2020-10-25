@@ -13,7 +13,7 @@ order_events(){
 }
 
 event_line(){
-  local temp="$1" ; shift
+  local -r temp="$1" ; shift
   while read event ; do
     # Lines have the format:
     # "YYYY/MM/DD:!" event-type " " event-content
@@ -45,7 +45,7 @@ event_line(){
 }
 
 run(){
-  local temp=`mktemp`
+  local -r temp=`mktemp`
 
   # generate plugin content, processing input files.
   get_events_with_date |

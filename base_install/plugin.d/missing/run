@@ -26,16 +26,16 @@ read -d '' join_pages <<- EOSCRIPT
 EOSCRIPT
 
 all_links(){
-  grep -o '[#@]\([a-zA-Z_0-9\-]\+\)' --recursive entries/  |
+  grep --only-matching '[#@]\([a-zA-Z_0-9\-]\+\)' --recursive entries/  |
   sed              \
     -e 's_^entries/\([^:]\+\).mw:\(.\+\)$_\2 \1_'  \
     -e 's_^[#@]__'          |
-  sort -u
+  sort --unique
 }
 
 pages_linked_to(){
-  grep -o '[#@]\([a-zA-Z_0-9\-]\+\)' --recursive entries/ --no-filename  |
-  sed -e 's_^[#@]__' | sort -u
+  grep --only-matching '[#@]\([a-zA-Z_0-9\-]\+\)' --recursive entries/ --no-filename  |
+  sed -e 's_^[#@]__' | sort --unique
 }
 
 pages(){
@@ -47,7 +47,7 @@ missing_links(){
   # join the two lists
   sort          |
   # show only unique entries, which gives us the pages that are missing
-  uniq -u
+  uniq --unique
 }
 
 run(){

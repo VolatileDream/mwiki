@@ -2,7 +2,7 @@
 
 files() {
   # Get files from a directory.
-  find "$MWIKI_DIR" -type f -iname '*.html' | grep -v '#.html'
+  find "$MWIKI_DIR" -type f -iname '*.html' | grep --invert-match '#.html'
 }
 
 file_name() {
@@ -15,7 +15,7 @@ create_dependencies() {
   # of the input files that get used to create this. This isn't exactly
   # correct, as it could be possible that some files don't get included
   # into the index, but we assume that `gen_index` does get them all.
-  files | xargs -L 1 -I {} cat {} > /dev/null
+  files | xargs --max-lines=1 --replace={} cat {} > /dev/null
 }
 
 section() {

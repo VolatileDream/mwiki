@@ -7,7 +7,7 @@ page_mentions(){
   grep --recursive --only-matching '[#@][a-zA-Z0-9_\-]\+' "$MWIKI_DIR/entries/" |
    sed "s_^$MWIKI_DIR/entries/__" |
      sed 's_.mw:_ :: _'             |
-   sort -ur
+   sort --unique --reverse
 }
 
 page_mentions

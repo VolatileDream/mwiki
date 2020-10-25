@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 get_quotes(){
-  grep -E '^!quotes ' --recursive "entries/" |
+  grep --extended-regexp '^!quotes ' --recursive "entries/" |
   sort |
   # remove the quote specifier
   sed 's_^entries/\(.\+\)\.mw:!quotes \+\(.\+\)_\2\\n(#\1)_'

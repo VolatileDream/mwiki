@@ -7,7 +7,7 @@ run-query(){
   fi
 
   # temporary storage file for index thing to show the user,
-  local tmp=`mktemp`
+  local -r tmp=`mktemp`
 
   # all of our arguments get passed to search++, since
   # the user should know how to query us.
@@ -16,7 +16,7 @@ run-query(){
 
   # some of the files are temporary index files, strip out the
   # random temporary part, and use only their entry date
-  local dates=$(cat "$tmp" | awk '!/^#/ { gsub( /.mw$/, "", $2); print $2 }' | tr '\n' ' ' )
+  local -ra dates=$(cat "$tmp" | awk '!/^#/ { gsub( /.mw$/, "", $2); print $2 }' | tr '\n' ' ' )
 
   if [ -t 1 ]; then
     # stdout is a terminal so we display the results before the actual entries
