@@ -1,17 +1,21 @@
 #!/usr/bin/env sh
-ENTRY="$1" ; shift
 
-echo "# $ENTRY"
-# Underline the title, all of it. This looks really
-# good if you look at the markdown intermediary.
-echo "# $ENTRY" | sed 's|.|-|g'
+main(){
+  ENTRY="$1" ; shift
 
-cat entries/$ENTRY.mw
+  echo "# $ENTRY"
+  # Underline the title, all of it. This looks really
+  # good if you look at the markdown intermediary.
+  echo "# $ENTRY" | sed 's|.|-|g'
 
-# Don't add mentions if there aren't any.
-plugin.d/mentions/extractor partial/core-mentions --has $ENTRY \
-  && echo '---' \
-  && echo '## Mentions' \
-  && plugin.d/mentions/extractor partial/core-mentions --extract $ENTRY
+  cat "entries/$ENTRY.mw"
 
-exit 0
+  # Don't add mentions if there aren't any.
+  plugin.d/mentions/extractor partial/core-mentions --has "$ENTRY" \
+    && echo '---' \
+    && echo '## Mentions' \
+    && plugin.d/mentions/extractor partial/core-mentions --extract "$ENTRY" \
+    || true
+}
+
+main "$@"
