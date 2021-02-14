@@ -1,0 +1,9 @@
+An example @TapestryPlugin Thread.
+
+This might normally contain information about a character, item, or location.
+
+Below is the auto-rendered timeline of events for this thread. Some of the
+events have been ordered, and some have not.
+
+!tapestry:order tap-event-2
+!tapestry:order tap-event-3
