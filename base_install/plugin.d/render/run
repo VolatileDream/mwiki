@@ -8,7 +8,9 @@ main(){
   # good if you look at the markdown intermediary.
   echo "# $ENTRY" | sed 's|.|-|g'
 
-  cat "entries/$ENTRY.mw"
+  cat "entries/$ENTRY.mw" | plugin.d/tapestry/transform --convert
+
+  plugin.d/tapestry/render partial/core-tapestry "$ENTRY"
 
   # Don't add mentions if there aren't any.
   plugin.d/mentions/extractor partial/core-mentions --has "$ENTRY" \

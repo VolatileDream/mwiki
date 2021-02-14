@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+
+import sys
+
+def load_index(filename, desired_thread):
+  with open(filename) as f:
+    refs = set()
+    for line in f:
+      event, thread = line.strip().split(" :: ")
+      if thread != desired_thread:
+        continue
+
+      refs.add(event)
+
+    return refs
+
+
+def load_ordered(filename):
+  with open(filename) as f:
+    order = []
+    for line in f:
+      if not line.startswith("!tapestry:order"):
+        continue
+      event = line[line.index(" "):].strip()
+      order.append(event)
+
+    return order
+
+
+def render(ordered, unordered):
+  if len(ordered) == 0 and len(unordered) == 0:
+    return
+  
+  if len(ordered) > 0:
+    print("## Narrative Timeline")
+    for event in ordered:
+      print(" * @{}".format(event))
+
+  if len(unordered) > 0:
+    print("## Unordered Events")
+    for event in unordered:
+      print(" * @{}".format(event))
+
+
+def main():
+  _name, db, entry = sys.argv
+
+  index = load_index(db, entry)
+  order = load_ordered("entries/{}.mw".format(entry))
+
+  index.difference_update(order)
+
+  render(order, index)
+
+
+if __name__ == "__main__":
+  main()

@@ -1,0 +1,5 @@
+include_rules
+
+# 'tapestry' works by creating a central page -> page file, which is queried
+# when rendering pages. It uses a different format than mentions.
+: entries/*.mw |> plugin.d/tapestry/indexer > %o |> partial/core-tapestry plugin.d/<join>

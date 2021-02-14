@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+tap::convert() {
+  grep --invert-match '^!tapestry:order' |
+    sed 's_^!tapestry:mention \+_@_g'
+}
+
+tap::remove() {
+  grep --invert-match --regexp '^!tapestry:'
+}
+
+main() {
+  if [[ $# -ne 1 ]]; then
+    echo "Wrong number of arguments supplied to tapestry/transform: '$@'" >> /dev/stderr
+    exit 1
+  fi
+
+  local arg="$1"; shift
+
+  case "$arg" in
+    --convert) tap::convert ;;
+    --remove) tap::remove ;;
+    *) 
+      echo "Bad argument to tapestry/transform: $arg" >> /dev/stderr
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,58 @@
+Tapestry is a plugin for handling narrative structure.
+
+It's used to tie together the threads of your story, by linking events together
+with the characters that were present for them.
+
+## How?
+
+Tapestry is in two parts:
+  * Events
+  * Threads
+
+Events are simply represented as wiki pages, while Threads are the links
+between events that tie your narrative together (eg: Characters, locations,
+etc).
+
+There are a few special things you have to do to use Tapestry:
+
+In your event pages you need to add `!tapestry:mention <thread>`, this will
+link your event pages to the Threads (much the same way the @MentionsPlugin
+works).
+
+## Quick Reference
+
+`!tapestry:mention <thread>` - used in Event pages, links to the thread.
+`!tapestry:order <event>` - used in Thread pages, orders the events.
+
+You should avoid Event names with spaces in them.
+
+Tapestry needs to be installed in your @RenderPlugin.
+
+## Installing
+
+Because Tapestry uses `!tapestry:` directives it tends to clutter the pages
+that it's used with. It supplies a transformer to help deal with thes problem.
+The transformer will remove `tapestry:mention` directives, or convert them into
+normal page links (configurable with `--remove` or `--convert`), while
+`tapestry:order` directives are always removed. This is because the
+`tapestry:order` directives are used in a different part of processing and do
+not make sense left in the rendered page.
+
+From the base render plugin change:
+
+> cat entries/$ENTRY.mw
+
+to
+
+> cat entries/$ENTRY.mw | plugin.d/tapestry/transform --remove
+
+or
+
+> cat entries/$ENTRY.mw | plugin.d/tapestry/transform --convert
+
+
+## Caveats
+
+Tapestry isn't really well suited to representing stories that are non-linear,
+or that involve time travelling characters. These tend to create branching or
+looping timelines that Tapestry won't handle well.

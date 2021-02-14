@@ -11,6 +11,7 @@ include plugin.d/missing/rules
 include plugin.d/search++/rules
 include plugin.d/events/rules
 include plugin.d/quotes/rules
+include plugin.d/tapestry/rules
 
 # --- #CorePlugins follow ---
 
