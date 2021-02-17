@@ -56,3 +56,5 @@ or
 Tapestry isn't really well suited to representing stories that are non-linear,
 or that involve time travelling characters. These tend to create branching or
 looping timelines that Tapestry won't handle well.
+
+Tapestry also adds a dependency on Python3 to mwiki.

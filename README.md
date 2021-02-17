@@ -36,6 +36,7 @@ By modifying the build system rules, `mwiki` can support plugins that do all sor
 Some of the plugins used my mwiki also depend on other programs. They include:
 
   * swish++ - search++ plugin
+  * python3 - tapestry plugin
 
 Not mentioned in either list is the large set of standard unix utils, such as awk, sed, find, etc.
 
