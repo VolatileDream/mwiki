@@ -1,56 +1,100 @@
 #!/usr/bin/env python3
 
+import collections
+import re
 import sys
 
-def load_index(filename, desired_thread):
+def load_index(filename, desired_threads):
   with open(filename) as f:
-    refs = set()
+    # alias -> mentions
+    refs = collections.defaultdict(set)
     for line in f:
-      event, thread = line.strip().split(" :: ")
-      if thread != desired_thread:
+      line = line.strip()
+      event, thread = line.split(" :: ")
+
+      if thread not in desired_threads:
         continue
 
-      refs.add(event)
+      refs[thread].add(event)
 
     return refs
 
 
-def load_ordered(filename):
+def load_thread(filename):
   with open(filename) as f:
     order = []
+    aliases = set()
     for line in f:
-      if not line.startswith("!tapestry:order"):
+      if not line.startswith("!tapestry:"):
         continue
-      event = line[line.index(" "):].strip()
-      order.append(event)
 
-    return order
+      line = line.strip()
+
+      command, content = line[line.index(":") + 1:].split(" ")
+
+      if command == "order":
+        order.append(content)
+      elif command == "alias":
+        aliases.add(content)
+
+    return (order, aliases)
 
 
-def render(ordered, unordered):
-  if len(ordered) == 0 and len(unordered) == 0:
+def render_event(thread, event, rindex):
+  # because of aliases this thread might appear in the event
+  # one or more times under several different names. We opt
+  # to show no extra info when refered to only by the thread
+  # name, but show all the names when there's more than at
+  # least one alias.
+  names = rindex[event]
+  if (len(names) == 1 and thread in names) or (len(names) == 0):
+    # no alias, or no name
+    return " * @{}".format(event)
+  else:
+    return " * @{} as @{}".format(event, ", @".join(names))
+
+
+def render(thread, ordered, unordered, rindex, aliases):
+  if len(ordered) == 0 and len(unordered) == 0 and len(aliases) == 1:
     return
-  
-  if len(ordered) > 0:
-    print("## Narrative Timeline")
-    for event in ordered:
-      print(" * @{}".format(event))
-
+ 
+  if len(aliases) > 1:
+    print("## Known Aliases")
+    for a in aliases:
+      if a != thread:
+        print(" * @{}".format(a))
+ 
   if len(unordered) > 0:
     print("## Unordered Events")
     for event in unordered:
-      print(" * @{}".format(event))
+      print(render_event(thread, event, rindex))
+
+  if len(ordered) > 0:
+    print("## Narrative Timeline")
+    for event in ordered:
+      print(render_event(thread, event, rindex))
 
 
 def main():
   _name, db, entry = sys.argv
 
-  index = load_index(db, entry)
-  order = load_ordered("entries/{}.mw".format(entry))
+  ordered, aliases = load_thread("entries/{}.mw".format(entry))
+  aliases.add(entry)
+  index = load_index(db, aliases)
 
-  index.difference_update(order)
+  # collapse down references in the index.
+  unordered = set()
+  # event -> thread(s)
+  rindex = collections.defaultdict(set)
 
-  render(order, index)
+  for thread, events in index.items():
+    unordered.update(events)
+    for e in events:
+      rindex[e].add(thread)
+
+  unordered.difference_update(ordered)
+
+  render(entry, ordered, unordered, rindex, aliases)
 
 
 if __name__ == "__main__":

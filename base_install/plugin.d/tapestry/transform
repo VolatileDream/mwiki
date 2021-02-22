@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 tap::convert() {
-  grep --invert-match '^!tapestry:order' |
+  grep --extended-regexp --invert-match '^!tapestry:(order|alias)' |
     sed 's_^!tapestry:mention \+_@_g'
 }
 

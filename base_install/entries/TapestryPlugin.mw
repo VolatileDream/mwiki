@@ -17,12 +17,29 @@ There are a few special things you have to do to use Tapestry:
 
 In your event pages you need to add `!tapestry:mention <thread>`, this will
 link your event pages to the Threads (much the same way the @MentionsPlugin
-works).
+works). And in your thread pages you'll need to add `!tapestry:order <event>`
+directives. These tell Tapestry the order of the events for this thread. You
+are not required to add an ordering directive for all events, Tapestry will
+list out all the undordered events as well.
+
+Additionally, Tapestry supports aliases. These create a one-way link for a
+thread to be known by another name. A simple example of this would be a
+character who has an alias, allowing you to differentiate when they appear
+as this other persona. Because these are one way, you could also use them to
+group a bunch of threads together into a category. An example would be having
+a "family-thread" which is an alias for each of the family members. To use
+this functionality add an alias directive to the thread page:
+`!tapestry:alias <alias-name>` to create the link.
+
+When a page is rendered by @mwiki, it creates three categories at the bottom
+for Tapestry information: Aliases (if used), Unordered Events (if there are
+any), and Ordered Events (if any).
 
 ## Quick Reference
 
 `!tapestry:mention <thread>` - used in Event pages, links to the thread.
 `!tapestry:order <event>` - used in Thread pages, orders the events.
+`!tapestry:alias <thread>` - used in Thread pages, denotes the other thread as an alias (one way).
 
 You should avoid Event names with spaces in them.
 

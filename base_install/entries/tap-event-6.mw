@@ -1,0 +1,6 @@
+Another event to test out #TapestryPlugin.
+
+Except this time we're using an alias!
+
+!tapestry:mention tap-thread-alias
+!tapestry:mention tap-thread-alias-2
