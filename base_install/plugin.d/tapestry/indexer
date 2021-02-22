@@ -3,8 +3,13 @@
 MWIKI_DIR="."
 
 main() {
-  grep --recursive --only-matching '^!tapestry:mention.\+' "${MWIKI_DIR}/entries/" |
-    sed -e "s_^${MWIKI_DIR}/entries/__" -e 's_!tapestry:mention \+__' -e 's_.mw:_ :: _' |
+  grep --extended-regexp \
+      --only-matching '^!tapestry:mention.+' \
+      --recursive "${MWIKI_DIR}/entries/" |
+    sed \
+      --expression "s_^${MWIKI_DIR}/entries/__" \
+      --expression 's_!tapestry:mention \+__' \
+      --expression 's_.mw:_ :: _' |
     sort --unique
 }
 
