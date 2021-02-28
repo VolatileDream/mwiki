@@ -1,240 +1,204 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
-MWIKI_NAME=".mwiki"
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
 
-err(){
-  echo -e "\e[31m" "$@" "\e[0m" >> /dev/stderr
-}
+WIKI_FILE = ".mwiki"
+PROJECT = "MWIKI_PROJECT"
+PATH = "MWIKI_PATH"
 
-mwiki_root_file() {
-  # Searches up the directory structure to find the mwiki root.
-  local path="$PWD"
+def find_root_file():
+  # absolute current path
+  current = pathlib.Path().absolute()
 
-  while [ ! -e "${path}/${MWIKI_NAME}" -a -n "${path}" ]; do
-    path="${path%/*}"
-  done
+  while True:
+    check = current.joinpath(WIKI_FILE)
+    if check.exists():
+      return check
 
-  if [ -e "${path}/${MWIKI_NAME}" ]; then
-    echo "${path}/${MWIKI_NAME}"
-    return 0
-  fi
+    # Stop after checking the root directory
+    if current == current.parent:
+      raise Exception("No mwiki config file found")
 
-  return 1
-}
+    current = current.parent
 
-mwiki_require(){
-  # Path already set.
-  if [ -n "$MWIKI_PATH" ]; then
-    return 0
-  fi
-  # set the wiki path and look it up at the same time
-  local dir=`mwiki_root_file`
 
-  if [ $? -ne 0 ]; then
-    err "No mwiki wiki was found."
-    err "Run: 'mwiki init' to create one."
-    exit 1
-  fi
+def mwiki_require():
+  config = find_root_file()
 
-  # this will set MWIKI_PATH to be not the empty string
-  source "$dir"
+  with config.open() as f:
+    settings = {PROJECT: str(config.parent)}
 
-  if [ -z "$MWIKI_PATH" ]; then
-    err "Bad mwiki instance did not set MWIKI_PATH: $dir"
-    exit 1
-  else
-    if [ "${MWIKI_PATH:0:1}" != "/" ]; then
-      # make path relative to project root
-      MWIKI_PATH="${dir%$MWIKI_NAME}${MWIKI_PATH}"
-    fi
-  fi
-}
+    for line in f:
+      line = line.strip()
+      if line.startswith("#") or not line:
+        continue
+      key, val = line.split("=", maxsplit=1)
 
-mwiki_init(){
-  if [ $# -lt 1 ]; then
-    err "Insufficient arguments to init"
-    err "Missing placement directory"
-    exit 1
-  fi
+      if key in settings:
+        raise Exception("Entry already exists in config: {}".format(key))
+      settings[key] = val
 
-  local -r project_dir="$1" ; shift
-  # This might be empty, if it is, use "." as here. 
-  # to default to $project_dir.
-  local -r mwiki_sub_dir="${1:-.}";
+    return settings
 
-  local -r MWIKI_CONF="$project_dir/$MWIKI_NAME"
 
-  if [ -f "$MWIKI_CONF" ]; then
-    err "Wiki already exists: $MWIKI_CONF"
-    return 1
-  fi
+class Mwiki:
+  @staticmethod
+  def find():
+    return Mwiki(mwiki_require())
 
-  # Ensure the project directory exists.
-  mkdir -p "${project_dir}/${mwiki_sub_dir}"
+  @staticmethod
+  def create(projectdir, wikidir=None):
+    project = pathlib.Path(projectdir)
 
-  echo "MWIKI_PATH=${mwiki_sub_dir}" > "$MWIKI_CONF"
+    wiki = project # by default
+    if wikidir is not None:
+      wiki = pathlib.Path(wikidir)
 
-  local mwiki_git_repo="`dirname $(readlink -f "$0")`"
-  if [ -e "${mwiki_git_repo}/base_install" ]; then
-    echo "Copying ${mwiki_git_repo}/base_install into ${project_dir}/${mwiki_sub_dir}"
-    cp -r -t "${project_dir}/${mwiki_sub_dir}" -- "${mwiki_git_repo}/base_install/"*
-  else
-    echo "Could not find mwiki git repo."
-    echo "You will have to install the mwiki base_install into ${MWIKI_PATH} yourself"
-    echo " mwiki can be found here: https://github.com/VolatileDream/mwiki/tree/master/base_install"
-  fi
-}
+    config = project.joinpath(WIKI_FILE)
+    if config.exists():
+      raise Exception("Configuration file already exists: {}".format(config))
 
-mwiki_entries(){
-  mwiki_require
-  local reverse_flag=""
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      --reverse)
-        reverse_flag="--reverse" ; shift
-        ;;
-      *)
-        echo "error: unrecognized arg to entries: $1" > /dev/stderr
-        exit 1
-        ;;
-    esac
-  done
+    project.mkdir(parents=True, exist_ok=True)
+    with config.open(mode='w') as f:
+      f.write("{} = {}".format(PATH, wiki))
 
-  pushd "$MWIKI_PATH/entries" > /dev/null
-  # (ab)using sort & bash arguments like this is safe, only because
-  # we control the contents of the `reverse_flag` variable. It's still
-  # not a great thing.
-  #
-  # when unset (or empty string) no extra arguments get passed to sort.
-  # when set, sort sees "--reverse"
-  find -iname '*.mw' | sed -e 's_^./__' -e 's_\.mw$__' | sort $reverse_flag
-  popd > /dev/null
-}
+    wiki.mkdir(parents=True, exist_ok=True)
 
-mwiki_build(){
-  mwiki_require
+    base_install = pathlib.Path(sys.argv[0]).parent.joinpath("base_install")
+    if not base_install.exists():
+      print("Could not find mwiki git repo.")
+      print("You will have to install the mwiki base_install into {} yourself".format(wiki))
+      print(" mwiki can be found here: https://github.com/VolatileDream/mwiki/tree/master/base_install")
+    else:
+      print("Copying {} into {}".format(base_install, wiki))
+      shutil.copytree(str(base_install), str(wiki), dirs_exist_ok=True)
 
-  local -a ARGS
+    return Mwiki({
+      PATH: str(wiki),
+      PROJECT: str(project),
+    })
 
-  while [ $# -gt 0 ]; do
-    case $1 in
-      -a|--auto)
-        ARGS+=("--autoupdate")
-        ARGS+=("--autoparse")
-        ;;
-      -d|--daemon)
-        ARGS+=("monitor")
-        ARGS+=("foreground")
-        ;;
-      # unrecognized arguments are just passed through, because we assume
-      # that the caller knows what they're doing.
-      *) ARGS+=("$1") ;;
-    esac
-    shift
-  done
+  @property
+  def path(self):
+    return pathlib.Path(self.config[PATH]).absolute()
 
-  mwiki_tup "${ARGS[@]}"
-}
+  def __init__(self, config):
+    self.config = config
 
-mwiki_tup(){
-  mwiki_require
+  def browse(self, entry=None):
+    if not entry:
+      entry = "#.html"
+    elif not entry.endswith("html"):
+      entry = "{}.html".format(entry)
 
-  # check if tup is running
+    html = self.path.joinpath("out-html").absolute()
+    subprocess.run(["sensible-browser", entry], cwd=str(html), check=True)
 
-  pushd "$MWIKI_PATH" > /dev/null
-  tup "$@"
-  popd > /dev/null
-}
+  def edit(self, entry):
+    if not entry:
+      raise Exception("Can't create the empty entry.")
 
-mwiki_edit(){
-  mwiki_require
-  local -r entry="$1" ; shift
-  local -r entry_path="$MWIKI_PATH/entries/$entry.mw"
+    path = self.path
 
-  # we use it as a meta entry later...
-  # and no link to it could be created.
-  if [ -z "$entry" ]; then
-    err "Can't create the empty entry"
-    return 1
-  fi
+    entryp = path.joinpath("entries", "{}.mw".format(entry))
+    existed = entryp.exists()
 
-  # used for a hack around tup behaviour
-  local created=0
+    if not sys.stdin.isatty():
+      with entryp.open(mode='wb') as io_out:
+        # ideally here we'd use something like os.sendfile,
+        # but it isn't suited for use with stdin.
+        io_in = sys.stdin.detach()
+        buf = bytearray(2 << 16)
+        while (read := io_in.readinto(buf)) != None:
+          io_out.write(buf[:read])
+    else:
+      if not existed:
+        resp = input("'{}' doesn't exist, create it? (Y/n) ".format(entry))
+        if resp in ('n', 'N'):
+          return 1
 
-  # check if std in is a tty
-  if ! tty > /dev/null ; then
-    [ -f "$entry_path" ] || created=1
-    cat >> "$entry_path"
-  else
-    if [ ! -f "$entry_path" ]; then
-      read -p "'$entry' doesn't exist, create it? (Y/n) "
-      if [ "$REPLY" != "n" -a "$REPLY" != "N" ]; then
-        touch "$entry_path"
-        created=1
-      else
-        # Don't create it.
-        return 1
-      fi
-    fi
+      args = ["sensible-editor", "{}.mw".format(entry)]
+      subprocess.run(args, cwd=str(entryp.parent), check=True)
+      
 
-    # This makes it really nice to open other entries while editing.
-    pushd "${MWIKI_PATH}/entries/" > /dev/null
-    sensible-editor "${entry}.mw"
-    popd > /dev/null
-  fi
+    # ugly hack. workaround for tup wildcards not picking up
+    # new files when an existing input file isn't modified.
+    if existed != entryp.exists():
+      out = path.joinpath("out-html")
+      # delete index
+      out.joinpath("#.html").unlink(missing_ok=True)
+      # special meta files that are known to exist as aggregates.
+      for p in out.glob("~*"):
+        p.unlink()
 
-  # this is an ugly hack to deal with tup incorrectly updating #.html
-  if [ $created -eq 1 ]; then
-    rm "${MWIKI_PATH}/out-html/#.html" "${MWIKI_PATH}/out-html/~"*
-  fi
+    self.build()
 
-  mwiki_tup
-}
+  def entries(self, reverse=False):
+    path = self.path.joinpath("entries")
+    entries = list()
+    for p in path.rglob("*.mw"):
+      entries.append(p.name[:-3])
+    entries.sort(key=lambda x: x.upper(), reverse=reverse)
+    for e in entries:
+      print(e)
 
-mwiki_browse(){
-  mwiki_require
-  cd "$MWIKI_PATH/out-html/"
+  def build(self, auto=False, daemon=False):
+    args = ["tup"]
+    if daemon:
+      args.extend(["monitor", "foreground"])
+    if auto:
+      args.extend(["--autoparse", "--autoupdate"])
 
-  local entry="./#.html"
-  if [ $# -gt 0 ]; then
-    entry="./$1.html"
-  fi
+    subprocess.run(args, cwd=str(self.path), check=True)
 
-  sensible-browser "$entry"
-}
 
-mwiki(){
-  if [ $# -lt 1 ]; then
-    mwiki_usage
-    exit 1
-  fi
+def usage():
+  print("mwiki <command> ...")
+  print("  init d [n] - initialize an mwiki with root directory $d,")
+  print("               store mwiki contents in directory $n (defaults to $d)")
+  print("  edit n     - edit the entry called $n")
+  print("  entries    - list all of the wiki entries")
+  print("  browse n   - open the wiki entry called $n")
+  print("  build [-d|--daemon [-a|--auto]] - start a build")
+  print("    -d, --daemon - file monitoring daemon, makes builds faster")
+  print("    -a, --auto - make the daemon rebuild on edits")
 
-  local command="$1" ; shift
 
-  case "$command" in
-    init) mwiki_init "$@" ;;
-    edit) mwiki_edit "$@" ;;
-    entries) mwiki_entries "$@" ;;
-    browse) mwiki_browse "$@" ;;
-    build) mwiki_build "$@" ;;
-    *) 
-      echo "error: '$command' is not a mwiki command"
-      mwiki_usage
-      return 1
-    ;;
-  esac
-}
+def main():
+  # stupid hack to avoid argparse.
+  def f(args, *names):
+    # return val if one of names is present in args.
+    names = set(names)
+    for a in args:
+      if a in names:
+        return True
+    return False
 
-mwiki_usage(){
-  echo "mwiki <command> ..."
-  echo "  init d [n] - initialize an mwiki with root directory \$d,"
-  echo "               store mwiki contents in directory \$n (defaults to \$d)"
-  echo "  edit n     - edit the entry called \$n"
-  echo "  entries    - list all of the wiki entries"
-  echo "  browse n   - open the wiki entry called \$n"
-  echo "  build [-d|--daemon [-a|--auto]] - start a build"
-  echo "    -d, --daemon - file monitoring daemon, makes builds faste"
-  echo "    -a, --auto - make the daemon rebuild on edits"
-}
+  WIKI_COMMANDS = {
+    "edit": lambda m, y: m.edit(*y),
+    "browse": lambda m, y: m.browse(*y),
+    "entries": lambda m, y: m.entries(reverse=f(y, "-r", "--reverse")),
+    "build": lambda m, y: m.build(auto=f(y, "-a", "--auto"), daemon=f(y, "-d", "--daemon")),
+  }
 
-mwiki "$@"
+  if len(sys.argv) <= 1:
+    usage()
+    return
+
+  _bin, command, *args = sys.argv
+
+  if command == "init":
+    Mwiki.create(*args)
+  elif command in WIKI_COMMANDS:
+    mw = Mwiki.find()
+    WIKI_COMMANDS[command](mw, args)
+  else:
+    raise Exception("error: '{}' is not an mwiki command".format(command))
+
+
+if __name__ == "__main__":
+  main()
