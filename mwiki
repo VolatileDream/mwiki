@@ -124,7 +124,7 @@ mwiki_build(){
         ;;
       -d|--daemon)
         ARGS+=("monitor")
-        ARGS+=("foreground")
+        ARGS+=("--foreground")
         ;;
       # unrecognized arguments are just passed through, because we assume
       # that the caller knows what they're doing.
