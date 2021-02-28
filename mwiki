@@ -52,7 +52,7 @@ class Mwiki:
 
   @staticmethod
   def create(projectdir, wikidir=None):
-    project = pathlib.Path(projectdir)
+    project = pathlib.Path(projectdir).absolute() # must always be absolute.
 
     wiki = project # by default
     if wikidir is not None:
@@ -84,7 +84,10 @@ class Mwiki:
 
   @property
   def path(self):
-    return pathlib.Path(self.config[PATH]).absolute()
+    p = pathlib.Path(self.config[PATH])
+    if not p.is_absolute():
+      p = pathlib.Path(self.config[PROJECT]).joinpath(p)
+    return p
 
   def __init__(self, config):
     self.config = config
@@ -149,7 +152,7 @@ class Mwiki:
   def build(self, auto=False, daemon=False):
     args = ["tup"]
     if daemon:
-      args.extend(["monitor", "foreground"])
+      args.extend(["monitor", "--foreground"])
     if auto:
       args.extend(["--autoparse", "--autoupdate"])
 
