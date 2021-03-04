@@ -33,9 +33,10 @@ class DependencyGraph:
                       rowid INTEGER PRIMARY KEY,
                       status INTEGER DEFAULT (2),
                       name BYTES);""")
+      c.execute("""CREATE UNIQUE INDEX IF NOT EXISTS Nodes_name ON Nodes (name);""")
       c.execute("""CREATE TABLE IF NOT EXISTS Edges (
-                      from_id INTEGER,
-                      to_id INTEGER,
+                      from_id INTEGER NOT NULL,
+                      to_id INTEGER NOT NULL,
                       PRIMARY KEY (from_id, to_id) ON CONFLICT IGNORE,
                       FOREIGN KEY (from_id) REFERENCES Nodes(rowid) ON DELETE CASCADE,
                       FOREIGN KEY (to_id) REFERENCES Nodes(rowid) ON DELETE CASCADE
@@ -98,7 +99,7 @@ class DependencyGraph:
 
   def __id(self, entry):
     with self.cursor() as c:
-      c.execute("SELECT rowid FROM Nodes WHERE name = ?", (entry,))
+      c.execute("SELECT rowid FROM Nodes INDEXED BY Nodes_name WHERE name = ?", (entry,))
       row = c.fetchone()
       if not row:
         raise NotFoundException("Could not find: {}".format(entry))
@@ -127,7 +128,7 @@ class DependencyGraph:
 
   def status(self, entry):
     with self.cursor() as c:
-      c.execute("SELECT status FROM Nodes WHERE name = ?;", (entry,))
+      c.execute("SELECT status FROM Nodes INDEXED BY Nodes_name WHERE name = ?;", (entry,))
       row = c.fetchone()
       if not row:
         raise NotFoundException("Could not find: {}".format(entry))
