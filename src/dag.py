@@ -109,7 +109,8 @@ class DependencyGraph:
     """Removes the entry.
 
     Returns a tuple of this entries depedencies and dependants so they can be
-    cleaned up as necessary.
+    cleaned up as necessary. Because dependencies are removed, all the
+    dependants are marked as changed.
     """
     with self.cursor() as c:
       i = self.__id(entry)
@@ -133,6 +134,15 @@ class DependencyGraph:
       if not row:
         raise NotFoundException("Could not find: {}".format(entry))
       return BuildStatus(row[0])
+
+  def changed(self):
+    """Returns the set of all items that are currently marked as changed."""
+    with self.cursor() as c:
+      changed = set()
+      c.execute("SELECT name FROM Nodes WHERE status = 2;")
+      for row in c:
+        changed.add(row[0])
+      return changed
 
   def __load_dep_edges(self, target):
     deps = {}

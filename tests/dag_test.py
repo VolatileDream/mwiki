@@ -35,6 +35,14 @@ class DagTests(unittest.TestCase):
     self.assertEqual(d.status("a").value, 1)
     self.assertEqual(d.status("b").value, 2)
 
+  def test_changed(self):
+    d = self.dag()
+
+    d.add("a")
+    d.add("b")
+
+    self.assertEqual(d.changed(), set(["a", "b"]))
+
   def test_building(self):
     d = self.dag()
 
