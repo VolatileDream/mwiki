@@ -49,6 +49,20 @@ class DependencyGraph:
                         UPDATE Nodes SET status = 2
                         WHERE Nodes.rowid IN (SELECT to_id FROM Edges WHERE from_id = NEW.rowid);
                       END;""")
+      # Check immediate dependencies to see if they're built.
+      c.execute("""CREATE TRIGGER IF NOT EXISTS NodeMarkedBuilt
+                      BEFORE UPDATE OF status ON Nodes
+                      WHEN NEW.status = 1
+                      BEGIN
+                        SELECT
+                          CASE COUNT(from_id)
+                            WHEN 0 THEN 0
+                            ELSE RAISE(FAIL, "Depends on things not built.")
+                          END
+                        FROM Edges INDEXED BY Edges_to
+                        JOIN Nodes ON rowid = from_id
+                        WHERE status != 1 AND to_id = NEW.rowid;
+                      END;""")
       # Catch updates to edges too.
       # If you change these triggers to use "BEFORE" instead of "AFTER" then
       # they won't catch cycles being added to the graph, as the NodesChanged
@@ -110,6 +124,14 @@ class DependencyGraph:
       from_id = self.__id(entry_from)
       to_id = self.__id(entry_to)
       c.execute("INSERT INTO Edges (from_id, to_id) VALUES (?, ?);", (from_id, to_id))
+
+  def status(self, entry):
+    with self.cursor() as c:
+      c.execute("SELECT status FROM Nodes WHERE name = ?;", (entry,))
+      row = c.fetchone()
+      if not row:
+        raise NotFoundException("Could not find: {}".format(entry))
+      return BuildStatus(row[0])
 
   def __load_dep_edges(self, target):
     deps = {}
@@ -201,17 +223,17 @@ class DependencyGraph:
         c.execute("SELECT name FROM Nodes WHERE rowid = ?;", (o,))
         yield c.fetchone()[0]
 
-  def __mark(self, c, entry_id, status):
-    c.execute("UPDATE Nodes SET status = ? WHERE Nodes.rowid = ?;", (status.value, entry_id))
+  def __mark(self, entry, status):
+    with self.cursor() as c:
+      entry_id = self.__id(entry)
+      c.execute("UPDATE Nodes SET status = ? WHERE Nodes.rowid = ?;", (status.value, entry_id))
 
   def mark_changed(self, entry):
     """Mark the entry as having changed, and needing to be rebuilt.
 
     This propagates to everything that depends on this entry.
     """
-    with self.cursor() as c:
-      i = self.__id(entry)
-      self.__mark(c, i, BuildStatus.CHANGED)
+    self.__mark(entry, BuildStatus.CHANGED)
 
   def mark_rebuilt(self, entry):
     """Mark the entry as having been rebuilt.
@@ -219,22 +241,7 @@ class DependencyGraph:
     Raises an exception if something that this entry depends on is marked as
     changed.
     """
-    with self.cursor() as c:
-      i = self.__id(entry)
-      # We could go further up the tree, but it shouldn't be necessary, as
-      # those items should also have checked that they were correctly inserted.
-      c.execute("""SELECT name
-                    FROM Edges INDEXED BY Edges_to
-                    JOIN Nodes ON rowid = from_id
-                    WHERE to_id = ? AND status != 1;""", (i,))
-      bad = []
-      for name in c:
-        bad.append(name)
-      if bad:
-        raise Exception(
-            "Attempting to mark '{}' as built when it depends on things that are not built: {}".format(
-                entry, ", ".join(bad)))
-      self.__mark(c, i, BuildStatus.BUILT)
+    self.__mark(entry, BuildStatus.BUILT)
 
 
 

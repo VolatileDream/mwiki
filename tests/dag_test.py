@@ -10,6 +10,7 @@ class DagTests(unittest.TestCase):
     d = self.dag()
 
     d.add("abc")
+    self.assertEqual(d.status("abc").value, 2)
 
     l = list(d.rebuild_instructions("abc"))
     self.assertEqual(l, ["abc"])
@@ -19,6 +20,20 @@ class DagTests(unittest.TestCase):
 
     with self.assertRaises(NotFoundException):
       d.edge("abc", "def")
+
+  def test_add_edge(self):
+    d = self.dag()
+
+    d.add("a")
+    d.add("b")
+
+    for n in d.rebuild_instructions():
+      d.mark_rebuilt(n)
+
+    d.edge("a", "b")
+
+    self.assertEqual(d.status("a").value, 1)
+    self.assertEqual(d.status("b").value, 2)
 
   def test_building(self):
     d = self.dag()
