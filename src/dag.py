@@ -5,13 +5,12 @@ import collections
 import enum
 import sqlite3
 
+from src.exceptions import NotFoundException
+
 class BuildStatus(enum.IntEnum):
   # you can not change these values, they're serialized to disk.
   BUILT = 1
   CHANGED = 2
-
-class NotFoundException(Exception):
-  pass
 
 
 class DependencyGraph:

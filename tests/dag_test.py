@@ -1,10 +1,11 @@
 import unittest
 import sqlite3
-from src.dag import DependencyGraph, NotFoundException
+from src.dag import DependencyGraph
+from src.exceptions import NotFoundException
 
 class DagTests(unittest.TestCase):
   def dag(self):
-    return DependencyGraph(sqlite3.connect(":memory:",isolation_level=None))
+    return DependencyGraph.open(":memory:")
 
   def test_add_build(self):
     d = self.dag()
