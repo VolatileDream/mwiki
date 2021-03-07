@@ -5,6 +5,9 @@ import sqlite3
 
 from src.exceptions import NotFoundException
 
+class NoDefault:
+  pass
+
 class Storage:
   @staticmethod
   def open(filename):
@@ -23,16 +26,18 @@ class Storage:
   def cursor(self):
     return closing(self.conn.cursor())
 
-  def __row(self, c, entry):
+  def __row_val(self, c, entry, default=NoDefault):
     row = c.fetchone()
     if not row:
-      raise NotFoundException("Could not find: {}".format(entry))
-    return row
+      if default == NoDefault:
+        raise NotFoundException("Could not find: {}".format(entry))
+      return default
+    return row[0]
 
   def __contains(self, entry):
     with self.cursor() as c:
       c.execute("SELECT 1 FROM Storage WHERE name = ?;", (entry,))
-      self.__row(c, entry)
+      self.__row_val(c, entry)
 
   def contains(self, entry):
     try:
@@ -41,20 +46,25 @@ class Storage:
     except NotFoundException:
       return False
 
-  def get(self, entry):
+  def get(self, entry, default=NoDefault):
+    """Fetch the key if it exists.
+
+    Returns the default if one is provided, otherwise throws an exception.
+    """
     with self.cursor() as c:
       c.execute("SELECT content FROM Storage WHERE name = ?;", (entry,))
-      return self.__row(c, entry)[0]
+      return self.__row_val(c, entry, default)
 
-  def add(self, entry, content):
+  def put(self, entry, content):
+    "Add or update the key"
     with self.cursor() as c:
-      c.execute("INSERT INTO Storage (name, content) VALUES (?, ?);", (entry,content))
+      c.execute("INSERT OR REPLACE INTO Storage (name, content) VALUES (?, ?);", (entry, content))
       return c.lastrowid
 
-  def update(self, entry, content):
+  def remove(self, entry):
+    "Removes the key if it exists."
     with self.cursor() as c:
-      self.__contains(entry)
-      c.execute("UPDATE Storage SET content = ? WHERE name = ?;", (content,entry))
+      c.execute("DELETE FROM Storage WHERE name = ?;", (entry,))
 
   def iterate(self, prefix=None):
     """Returns all the keys for items in storage.
