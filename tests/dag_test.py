@@ -36,6 +36,27 @@ class DagTests(unittest.TestCase):
     self.assertEqual(d.status("a").value, 1)
     self.assertEqual(d.status("b").value, 2)
 
+  def test_remove_edge(self):
+    d = self.dag()
+
+    d.add("a")
+    d.add("b")
+    d.add("c")
+    d.edge("a", "b")
+    d.edge("b", "c")
+
+    for n in d.rebuild_instructions():
+      d.mark_rebuilt(n)
+
+    deps, rdeps = d.remove("b")
+    self.assertEqual(deps, ["a"])
+    self.assertEqual(rdeps, ["c"])
+
+    self.assertEqual(d.status("c"), 2)
+
+    with self.assertRaises(NotFoundException):
+      d.status("b")
+
   def test_changed(self):
     d = self.dag()
 

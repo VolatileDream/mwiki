@@ -104,7 +104,7 @@ class DependencyGraph:
         raise NotFoundException("Could not find: {}".format(entry))
       return row[0]
 
-  def remove(self, entry):
+  def remove(self, entry, load_connected=True):
     """Removes the entry.
 
     Returns a tuple of this entries depedencies and dependants so they can be
@@ -113,12 +113,21 @@ class DependencyGraph:
     """
     with self.cursor() as c:
       i = self.__id(entry)
-      c.execute("SELECT name FROM Edges INDEXED BY Edges_to JOIN Nodes ON rowid = from_id WHERE to_id = ?;", (i,))
-      deps = list(c)
-      c.execute("SELECT name FROM Edges JOIN Nodes ON rowid = to_id WHERE from_id = ?;", (i,))
-      rdps = list(c)
+
+      deps = None
+      rdeps = None
+      if load_connected:
+        c.execute("SELECT name FROM Edges INDEXED BY Edges_to JOIN Nodes ON rowid = from_id WHERE to_id = ?;", (i,))
+        deps = []
+        for row in c:
+          deps.append(row[0])
+        c.execute("SELECT name FROM Edges JOIN Nodes ON rowid = to_id WHERE from_id = ?;", (i,))
+        rdeps = []
+        for row in c:
+          rdeps.append(row[0])
+
       c.execute("DELETE FROM Nodes WHERE rowid = ?", (i,))
-      return (rdeps, deps)
+      return (deps, rdeps)
 
   def edge(self, entry_from, entry_to):
     with self.cursor() as c:
