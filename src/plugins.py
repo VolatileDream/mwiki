@@ -30,13 +30,13 @@ class Plugin:
     pass
 
 
-class MetaPagePluginMixin:
+class MetaPageMixin:
   def render_metapage(self, index_dict : Dict[str, str]) -> str:
     """Using the index, generate the plugins meta-page."""
     pass
 
 
-class RenderPluginMixin:
+class RenderMixin:
   def get_content(self, entry_name : str, index_content : Dict[str, str]) -> str:
     """Using the content from the index, generate render content."""
     pass
