@@ -5,7 +5,7 @@
 import sqlite3
 
 from src.dag import DependencyGraph
-from src.storage import Storage
+from src.storage import Storage, NoDefault
 
 class RecordingStorage:
   """Storage interface that exists to record the changes made to storage.
@@ -21,7 +21,7 @@ class RecordingStorage:
     self.read.add(entry)
     return self.storage.contains(entry)
 
-  def get(self, entry, default):
+  def get(self, entry, default=NoDefault):
     self.read.add(entry)
     return self.storage.get(entry, default)
 
@@ -50,7 +50,7 @@ class ManagedStorage:
   def contains(self, entry):
     return self.storage.contains(entry)
 
-  def get(self, entry, default):
+  def get(self, entry, default=NoDefault):
     return self.storage.get(entry, default)
 
   def iterate(self, prefix=None):
