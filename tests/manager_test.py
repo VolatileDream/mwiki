@@ -95,7 +95,9 @@ class ManagedStorageTests(unittest.TestCase):
 
 class ManagerTests(unittest.TestCase):
   def m(self, builder=None):
-    return Manager.open(":memory:", builder)
+    m = Manager.open(":memory:")
+    m.set_builder(builder)
+    return m
 
   def test_clean(self):
     m = self.m()
@@ -106,22 +108,22 @@ class ManagerTests(unittest.TestCase):
 
     # Adding nodes doesn't update storage.
     # This assertion is for documentation purposes only.
-    self.assertEqual(list(m.storage.iterate()), [])
+    self.assertEqual(list(m.storage().iterate()), [])
 
-    s = m.storage
+    s = m.storage()
     s.put("abc", "abc-val")
     s.put("def", "def-val")
     s.put("ghi", "ghi-val")
-    self.assertEqual(list(m.storage.iterate()), ["abc", "def", "ghi"])
+    self.assertEqual(list(m.storage().iterate()), ["abc", "def", "ghi"])
 
     m.clean() # no deps, no-op
-    self.assertEqual(list(m.storage.iterate()), ["abc", "def", "ghi"])
+    self.assertEqual(list(m.storage().iterate()), ["abc", "def", "ghi"])
 
     m.add_dependency("def", "abc")
     m.add_dependency("ghi", "def")
 
     m.clean()
-    self.assertEqual(list(m.storage.iterate()), ["abc"])
+    self.assertEqual(list(m.storage().iterate()), ["abc"])
 
   def test_simple_build(self):
     class Builder:
@@ -135,7 +137,7 @@ class ManagerTests(unittest.TestCase):
         return target + "-built-value"
 
     m = self.m(Builder())
-    s = m.storage
+    s = m.storage()
 
     m.add("abc")
     m.add("def")
@@ -159,7 +161,7 @@ class ManagerTests(unittest.TestCase):
         return target + "-val"
 
     m = self.m(Builder())
-    s = m.storage
+    s = m.storage()
 
     m.add("abc")
     m.add("def")
