@@ -8,7 +8,7 @@ class Plugin:
     """Name of the plugin.
 
     The Plugin is required to share it's name with the filename that contains
-    it in ./plugins.d, this is for change detection convenience.
+    it in ./plugins, this is for change detection convenience.
     """
     pass
 
@@ -21,23 +21,29 @@ class Plugin:
   def is_directive(self):
     return hasattr(self, DirectivePlugin.directives.__name__)
 
-  def update_index(self, entry_name : str, entry_content : str) -> Optional[bytes]:
-    """Called after an entry is changed, to update the index.
+  def compute_partial_index(self, entry_name : str, entry_content : str) -> Optional[bytes]:
+    """Called after an entry is changed, to update it's index part.
 
-    Whatever is returned replaces the existing index entry, if None is returned
-    the index entry is deleted instead.
+    Whatever gets returned is stored.
+    """
+    pass
+
+  def aggregate_index(self, index_content : Dict[str, bytes]) -> bytes:
+    """Called to update the index for MetaPageMixin and RenderMixin.
+
+    Passed a dictionary that has all the return values from `compute_partial_index`.
     """
     pass
 
 
 class MetaPageMixin:
-  def render_metapage(self, index_dict : Dict[str, str]) -> str:
+  def render_metapage(self, index : bytes) -> str:
     """Using the index, generate the plugins meta-page."""
     pass
 
 
 class RenderMixin:
-  def get_content(self, entry_name : str, index_content : Dict[str, str]) -> str:
+  def get_content(self, entry_name : str, index : bytes) -> str:
     """Using the content from the index, generate render content."""
     pass
 
