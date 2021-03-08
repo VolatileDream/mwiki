@@ -127,3 +127,33 @@ class DagTests(unittest.TestCase):
     # Because none of these have dependencies. 
     l = set(d.rebuild_instructions())
     self.assertSetEqual(l, set(["d", "e", "f", "g"]))
+
+  def test_check_dependencies(self):
+    d = self.dag()
+
+    d.add("a")
+    d.add("b")
+    d.add("c")
+
+    d.edge("a", "b")
+    d.edge("b", "c")
+
+    self.assertFalse(d.has_dependencies("a"))
+    self.assertTrue(d.has_dependencies("b"))
+    self.assertTrue(d.has_dependencies("c"))
+
+    self.assertEqual(d.dependencies("a"), set([]))
+    self.assertEqual(d.dependencies("b"), set(["a"]))
+    self.assertEqual(d.dependencies("c"), set(["b"]))
+
+    self.assertEqual(d.dependencies("a", deps_of_deps=True), set([]))
+    self.assertEqual(d.dependencies("b", deps_of_deps=True), set(["a"]))
+    self.assertEqual(d.dependencies("c", deps_of_deps=True), set(["b", "a"]))
+
+    d.add("d")
+    d.add("e")
+    d.edge("c", "d")
+    d.edge("d", "e")
+
+    self.assertEqual(d.dependencies("d", deps_of_deps=True), set(["b", "c"]))
+    self.assertEqual(d.dependencies("e", deps_of_deps=True), set(["c", "d"]))

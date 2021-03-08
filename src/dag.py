@@ -83,6 +83,14 @@ class DependencyGraph:
   def cursor(self):
     return closing(self.conn.cursor())
 
+  def __id(self, entry):
+    with self.cursor() as c:
+      c.execute("SELECT rowid FROM Nodes INDEXED BY Nodes_name WHERE name = ?", (entry,))
+      row = c.fetchone()
+      if not row:
+        raise NotFoundException("Could not find: {}".format(entry))
+      return row[0]
+
   def add(self, entry):
     """Add an entry to the dependency graph.
 
@@ -95,14 +103,6 @@ class DependencyGraph:
       except NotFoundException:
         c.execute("INSERT INTO Nodes (name) VALUES (?);", (entry,))
         return c.lastrowid
-
-  def __id(self, entry):
-    with self.cursor() as c:
-      c.execute("SELECT rowid FROM Nodes INDEXED BY Nodes_name WHERE name = ?", (entry,))
-      row = c.fetchone()
-      if not row:
-        raise NotFoundException("Could not find: {}".format(entry))
-      return row[0]
 
   def remove(self, entry, load_connected=True):
     """Removes the entry.
@@ -151,6 +151,32 @@ class DependencyGraph:
       for row in c:
         changed.add(row[0])
       return changed
+
+  def has_dependencies(self, target):
+    with self.cursor() as c:
+      i = self.__id(target)
+      c.execute("SELECT EXISTS (SELECT 1 FROM Edges INDEXED BY Edges_to WHERE to_id = ?);", (i,))
+      return bool(c.fetchone()[0])
+
+  def dependencies(self, target, deps_of_deps=False):
+    deps = set()
+    with self.cursor() as c:
+      i = self.__id(target)
+      c.execute("""SELECT name
+                    FROM Edges INDEXED BY Edges_to
+                    JOIN Nodes ON rowid = from_id
+                    WHERE to_id = ?;""", (i,))
+      for row in c:
+        deps.add(row[0])
+
+      if deps_of_deps:
+        second_deps = set()
+        for d in deps:
+          second_deps.update(self.dependencies(d, deps_of_deps=False))
+
+        deps.update(second_deps)
+
+      return deps
 
   def __load_dep_edges(self, target):
     deps = {}
