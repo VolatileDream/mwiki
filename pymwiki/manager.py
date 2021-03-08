@@ -4,8 +4,8 @@
 
 import sqlite3
 
-from src.dag import DependencyGraph
-from src.storage import Storage, NoDefault
+from pymwiki.dag import DependencyGraph
+from pymwiki.storage import Storage, NoDefault
 
 class RecordingStorage:
   """Storage interface that exists to record the changes made to storage.

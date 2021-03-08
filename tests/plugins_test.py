@@ -1,6 +1,6 @@
 import unittest
 import sqlite3
-from src.plugins import DirectivePlugin, DirectiveHandling
+from pymwiki.plugins import DirectivePlugin, DirectiveHandling
 
 class SimpleDirective(DirectivePlugin):
   def directives(self):

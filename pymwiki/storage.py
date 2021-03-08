@@ -3,7 +3,7 @@
 from contextlib import closing
 import sqlite3
 
-from src.exceptions import NotFoundException
+from pymwiki.exceptions import NotFoundException
 
 class NoDefault:
   pass

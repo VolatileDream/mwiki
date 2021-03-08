@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
-from src.dag import DependencyGraph
-from src.exceptions import NotFoundException
+from pymwiki.dag import DependencyGraph
+from pymwiki.exceptions import NotFoundException
 
 class DagTests(unittest.TestCase):
   def dag(self):

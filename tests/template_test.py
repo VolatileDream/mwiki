@@ -1,5 +1,5 @@
 import unittest
-from src.template import Template
+from pymwiki.template import Template
 
 class TemplateTests(unittest.TestCase):
   def test_no_vars(self):

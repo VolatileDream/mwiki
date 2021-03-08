@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
-from src.manager import Builder, Manager, RecordingStorage, ManagedStorage
-from src.exceptions import NotFoundException
+from pymwiki.manager import Builder, Manager, RecordingStorage, ManagedStorage
+from pymwiki.exceptions import NotFoundException
 
 class TestStorage:
   def __init__(self):

@@ -5,7 +5,7 @@ import collections
 import enum
 import sqlite3
 
-from src.exceptions import NotFoundException
+from pymwiki.exceptions import NotFoundException
 
 class BuildStatus(enum.IntEnum):
   # you can not change these values, they're serialized to disk.

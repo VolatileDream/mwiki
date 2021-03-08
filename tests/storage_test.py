@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
-from src.storage import Storage
-from src.exceptions import NotFoundException
+from pymwiki.storage import Storage
+from pymwiki.exceptions import NotFoundException
 
 class StorageTests(unittest.TestCase):
   def store(self):
