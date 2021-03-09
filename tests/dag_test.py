@@ -157,3 +157,19 @@ class DagTests(unittest.TestCase):
 
     self.assertEqual(d.dependencies("d", deps_of_deps=True), set(["b", "c"]))
     self.assertEqual(d.dependencies("e", deps_of_deps=True), set(["c", "d"]))
+
+  def test_iterate(self):
+    # Needed because iterating storage isn't guaranteed to work.
+    # There's no guarantee a key exists in storage, but it _is_ guaranteed
+    # to always exist in the DependencyGraph.
+
+    d = self.dag()
+
+    d.add("a1")
+    d.add("a2")
+    d.add("a3")
+    d.add("b1")
+    d.add("b2")
+    d.add("c1")
+
+    self.assertEqual(set(d.iterate(prefix="a")), set(["a1", "a2", "a3"]))

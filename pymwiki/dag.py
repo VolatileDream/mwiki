@@ -288,5 +288,14 @@ class DependencyGraph:
     """
     self.__mark(entry, BuildStatus.BUILT)
 
+  def iterate(self, prefix=None):
+    with self.cursor() as c:
+      if not prefix:
+        c.execute("SELECT name FROM Nodes;")
+      else:
+        prefix = "{}%".format(prefix)
+        c.execute("SELECT name FROM Nodes WHERE name LIKE ?;", (prefix,))
 
+      for row in c:
+        yield row[0]
 
