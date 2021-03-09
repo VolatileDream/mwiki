@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import enum
+import json
 from typing import Dict, Optional, final, ForwardRef
 
 class Plugin:
@@ -26,14 +27,14 @@ class Plugin:
 
     Whatever gets returned is stored.
     """
-    pass
+    raise Exception("Forgot to implement {}.compute_partial_index".format(type(self).__name__))
 
   def aggregate_index(self, index_content : Dict[str, bytes]) -> bytes:
     """Called to update the index for MetaPageMixin and RenderMixin.
 
     Passed a dictionary that has all the return values from `compute_partial_index`.
     """
-    pass
+    raise Exception("Forgot to implement {}.aggregate_index".format(type(self).__name__))
 
 
 class MetaPageMixin:
@@ -73,7 +74,7 @@ class DirectivePlugin(Plugin):
   """
 
   @final
-  def update_index(self, name, content):
+  def compute_partial_index(self, name, content):
     keep = []
     prefixes = set(self.directives().keys())
     for line in content.split("\n"):
@@ -82,6 +83,10 @@ class DirectivePlugin(Plugin):
           keep.append(line)
           break # only add to keep once.
     return "\n".join(keep)
+
+  @final
+  def aggregate_index(self, index_content):
+    return json.dumps(index_content)
 
   def directives(self) -> Dict[str, DirectiveHandling]:
     pass
@@ -99,6 +104,7 @@ class DirectivePlugin(Plugin):
       for r in removes:
         if line.startswith(r):
           started = True
+          break
       if not started:
         updated_lines.append(line)
 
