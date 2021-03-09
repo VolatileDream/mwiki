@@ -1,4 +1,6 @@
 
-from plugins.html import HtmlRender
+from html import HtmlRender
+from index import IndexRender
 
-register(HtmlRender)
+register(HtmlRender())
+register(IndexRender())
