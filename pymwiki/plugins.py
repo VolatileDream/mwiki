@@ -13,10 +13,10 @@ class Plugin:
     pass
 
   def has_meta(self):
-    return hasattr(self, MetaPagePluginMixin.render_metapage.__name__)
+    return hasattr(self, MetaPageMixin.render_metapage.__name__)
 
   def has_render(self):
-    return hasattr(self, RenderPluginMixin.get_content.__name__)
+    return hasattr(self, RenderMixin.get_content.__name__)
 
   def is_directive(self):
     return hasattr(self, DirectivePlugin.directives.__name__)
