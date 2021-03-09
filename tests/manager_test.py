@@ -151,8 +151,11 @@ class ManagerTests(unittest.TestCase):
     m.build()
 
     self.assertEqual(s.get("abc"), "abc-built-value")
+    self.assertEqual(m.dag.status("abc").value, 1)
     self.assertEqual(s.get("def"), "def-built-value")
+    self.assertEqual(m.dag.status("def").value, 1)
     self.assertEqual(s.get("ghi"), "ghi-built-value")
+    self.assertEqual(m.dag.status("ghi").value, 1)
 
   def test_bad_build(self):
     class Builder:

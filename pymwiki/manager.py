@@ -123,6 +123,7 @@ class Manager:
         self.store.remove(name)
       else:
         self.store.put(name, content)
+      self.dag.mark_rebuilt(name)
 
   def clean(self):
     """Deletes all generated items that need rebuilding.
@@ -147,6 +148,9 @@ class Manager:
     "Returns the Storage interface."
     return ManagedStorage(self.store, self.dag)
 
+  def contains(self, name):
+    return self.dag.contains(name)
+
   def add(self, name):
     "Add an item to the dependency graph."
     self.dag.add(name)
@@ -161,6 +165,9 @@ class Manager:
     deps, rdeps = self.dag.remove(name, load_connected=load_connected)
     return (deps, rdeps)
 
+  def changed(self, name):
+    self.dag.mark_changed(name)
+
   def add_dependency(self, name, dependency):
     """Adds a dependency to name.
 
@@ -168,3 +175,4 @@ class Manager:
     changed and needing rebuild.    
     """
     self.dag.edge(dependency, name)
+
