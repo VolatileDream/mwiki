@@ -13,8 +13,9 @@ class RecordingStorage:
   Passed to the Builder function that users provide to ensure they aren't
   changing things they shouldn't be.
   """
-  def __init__(self, storage):
+  def __init__(self, storage, dag):
     self.storage = storage
+    self.dag = dag
     self.read = set()
 
   def contains(self, entry):
@@ -26,7 +27,7 @@ class RecordingStorage:
     return self.storage.get(entry, default)
 
   def iterate(self, prefix=None):
-    for k in self.storage.iterate(prefix):
+    for k in self.dag.iterate(prefix):
       self.read.add(k)
       yield k
 
@@ -54,7 +55,7 @@ class ManagedStorage:
     return self.storage.get(entry, default)
 
   def iterate(self, prefix=None):
-    return self.storage.iterate(prefix)
+    return self.dag.iterate(prefix)
 
   def put(self, entry, content):
     if self.dag.has_dependencies(entry):
@@ -102,7 +103,7 @@ class Manager:
       raise Exception("While building '{}' the builder accessed non-dependencies: {}".format(name, ", ".join(bad_touch)))
 
   def __build(self, name):
-    s = RecordingStorage(self.store)
+    s = RecordingStorage(self.store, self.dag)
 
     content = self.builder.build(name, s, lambda: self.dag.dependencies(name))
 

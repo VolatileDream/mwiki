@@ -23,28 +23,28 @@ class TestStorage:
 # Duck tying for the win...
 class RecordingStorageTests(unittest.TestCase):
   def test_contains(self):
-    r = RecordingStorage(t := TestStorage())
+    r = RecordingStorage(t := TestStorage(), t)
 
     self.assertEqual(r.contains("abc"), "contains")
     self.assertEqual(t.calls, [("contains", "abc")])
 
   def test_get(self):
-    r = RecordingStorage(t := TestStorage())
+    r = RecordingStorage(t := TestStorage(), t)
     self.assertEqual(r.get("abc", "123"), "get")
     self.assertEqual(t.calls, [("get", "abc", "123")])
 
   def test_iterate(self):
-    r = RecordingStorage(t := TestStorage())
+    r = RecordingStorage(t := TestStorage(), t)
     self.assertEqual(list(r.iterate(prefix="abc")), ["iterate"])
     self.assertEqual(t.calls, [("iterate", "abc")])
 
   def test_put(self):
-    r = RecordingStorage(t := TestStorage())
+    r = RecordingStorage(t := TestStorage(), t)
     with self.assertRaises(Exception):
       r.put("abc", "def")
 
   def test_remove(self):
-    r = RecordingStorage(t := TestStorage())
+    r = RecordingStorage(t := TestStorage(), t)
     with self.assertRaises(Exception):
       r.remove("abc")
 
@@ -63,7 +63,7 @@ class DagShim:
 
 class ManagedStorageTests(unittest.TestCase):
   def test_passthrough(self):
-    m = ManagedStorage(t := TestStorage(), None)
+    m = ManagedStorage(t := TestStorage(), t)
 
     self.assertEqual(m.contains("abc"), "contains")
     self.assertEqual(m.get("abc", "def"), "get")
@@ -106,10 +106,6 @@ class ManagerTests(unittest.TestCase):
     m.add("def")
     m.add("ghi")
 
-    # Adding nodes doesn't update storage.
-    # This assertion is for documentation purposes only.
-    self.assertEqual(list(m.storage().iterate()), [])
-
     s = m.storage()
     s.put("abc", "abc-val")
     s.put("def", "def-val")
@@ -123,7 +119,7 @@ class ManagerTests(unittest.TestCase):
     m.add_dependency("ghi", "def")
 
     m.clean()
-    self.assertEqual(list(m.storage().iterate()), ["abc"])
+    self.assertEqual(list(m.storage().iterate()), ["abc", "def", "ghi"])
 
   def test_simple_build(self):
     class Builder:
