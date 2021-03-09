@@ -73,14 +73,19 @@ class Builder:
 
 class Manager:
   @staticmethod
-  def open(dbfile, builder):
+  def open(dbfile):
     dbconn = sqlite3.connect(dbfile, isolation_level=None)
-    return Manager(dbconn, Storage(dbconn), DependencyGraph(dbconn), builder)
+    return Manager(dbconn, Storage(dbconn), DependencyGraph(dbconn))
 
-  def __init__(self, dbconn, storage, dag, builder):
+  def __init__(self, dbconn, storage, dag):
     self.dbconn = dbconn
-    self.storage = storage
+    self.store = storage
     self.dag = dag
+    self.builder = None
+
+  def set_builder(self, builder):
+    if self.builder is not None:
+      raise Exception("Builder already set")
     self.builder = builder
 
   def __bad_touch(self, name, touched):
@@ -97,7 +102,7 @@ class Manager:
       raise Exception("While building '{}' the builder accessed non-dependencies: {}".format(name, ", ".join(bad_touch)))
 
   def __build(self, name):
-    s = RecordingStorage(self.storage)
+    s = RecordingStorage(self.store)
 
     content = self.builder.build(name, s, lambda: self.dag.dependencies(name))
 
@@ -115,9 +120,9 @@ class Manager:
     for name in rebuild:
       content = self.__build(name)
       if content is None:
-        self.storage.remove(name)
+        self.store.remove(name)
       else:
-        self.storage.put(name, content)
+        self.store.put(name, content)
 
   def clean(self):
     """Deletes all generated items that need rebuilding.
@@ -129,7 +134,7 @@ class Manager:
     """
     for key in self.dag.changed():
       if self.dag.has_dependencies(key):
-        self.storage.remove(key)
+        self.store.remove(key)
 
   def transaction(self):
     """Wraps actions in a transaction, use for better performance.
@@ -140,7 +145,7 @@ class Manager:
 
   def storage(self):
     "Returns the Storage interface."
-    return ManagedStorage(self.storage, self.dag)
+    return ManagedStorage(self.store, self.dag)
 
   def add(self, name):
     "Add an item to the dependency graph."
@@ -152,7 +157,7 @@ class Manager:
     Returns a tuple of ([dependencies], [dependants]) if load_connected is True,
     otherwise returns (None, None).
     """
-    self.storage.remove(name)
+    self.store.remove(name)
     deps, rdeps = self.dag.remove(name, load_connected=load_connected)
     return (deps, rdeps)
 
