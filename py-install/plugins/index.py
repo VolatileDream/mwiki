@@ -30,4 +30,4 @@ class IndexRender(pymwiki.plugins.Plugin, pymwiki.plugins.RenderMixin):
     wiki = IndexRender.section(entries, "Wiki", lambda x: not DATE.match(x) and not GEN.match(x))
     gen = IndexRender.section(entries, "Generated Pages", lambda x: GEN.match(x))
 
-    return "<br>".join(journal + wiki + gen)
+    return "<br>\n".join(journal + wiki + gen)
