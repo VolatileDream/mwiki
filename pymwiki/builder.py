@@ -17,16 +17,20 @@ PLUGIN_DIR = "plugins"
 
 RESERVED_PLUGINS = frozenset(["name", "content", "impl"])
 
+def k(name):
+  return name
+  return name.replace("\0", ":")
+
 def n(*args, end=False):
   "Convert the arguments to a storage name"
   suffix = ""
   if end:
-    suffix = "\0"
-  return "\0".join(args) + suffix
+    suffix = ":"
+  return ":".join(args) + suffix
 
 def f(name):
   "Convert from a storage key back to an argument array."
-  return name.split("\0")
+  return name.split(":")
 
 def loader(path):
   return path.open()
@@ -90,19 +94,20 @@ class MwikiBuilder:
       index = {}
       for index_key in storage.iterate(prefix=n("plugin", name, "index", end=True)):
         _plugin, _pname, _index, name = f(index_key)
-        index[name] = storage.get(key)
+        index[name] = storage.get(index_key)
       return plugin.aggregate_index(index)
 
     elif instr == "index" and len(entry) == 1:
       content = storage.get(n("entry", entry[0]))
-      return plugin.compute_partial_index(entry[0], content)
+      partial = plugin.compute_partial_index(entry[0], content)
+      return partial
 
     elif instr == "meta":
-      index = storage.get(n("plugin", plugin, "index"))
+      index = storage.get(n("plugin", name, "index"))
       return plugin.render_metapage(index)
 
     elif instr == "render":
-      index = storage.get(n("plugin", plugin, "index"))
+      index = storage.get(n("plugin", name, "index"))
       return plugin.get_content(entry[0], index)
 
     else:
@@ -128,12 +133,15 @@ class MwikiBuilder:
 
     elif instr == "html":
       entry, *empty = args
-      content = storage.get(n("render", entry))
+      if entry.startswith("~"):
+        content = storage.get(n("plugin", entry[1:], "meta"))
+      else:
+        content = storage.get(n("render", entry))
       return self.plugins["html"].get_content(entry, content)
 
     elif instr == "index":
       entries = set()
-      for key in self.manager.storage().iterate(n("entry", end=True)):
+      for key in self.manager.storage().iterate(n("file", end=True)):
         _e, name = f(key)
         entries.add(name)
 
@@ -189,6 +197,8 @@ class MwikiBuilder:
 
     if self.manager.contains(n("plugin", name, "meta")):
       self.manager.remove(n("plugin", name, "meta"), load_connected=False)
+      self.manager.remove(n("html", "~{}".format(name)))
+      self.manager.remove(n("file", "~{}".format(name)))
 
     index = n("plugin", p.name(), "index")
     index_prefix = n("plugin", p.name(), "index", end=True)
@@ -231,10 +241,15 @@ class MwikiBuilder:
     self.manager.add_dependency(n("plugin", p.name(), "index"), n("plugin", "impl", p.name()))
 
     if p.has_meta():
+      meta_page = "~{}".format(p.name())
       self.manager.add(n("plugin", p.name(), "meta"))
+      self.manager.add(n("html", meta_page))
+      self.manager.add(n("file", meta_page))
       self.manager.add_dependency(n("plugin", p.name(), "meta"), n("plugin", "impl", p.name()))
       self.manager.add_dependency(n("plugin", p.name(), "meta"), n("plugin", p.name(), "index"))
-      self.manager.add_dependency(n("index"), n("plugin", p.name(), "meta"))
+      self.manager.add_dependency(n("html", meta_page), n("plugin", p.name(), "meta"))
+      self.manager.add_dependency(n("file", meta_page), n("html", meta_page))
+      self.manager.add_dependency(n("index"), n("file", meta_page))
 
     if p.has_render():
       self.manager.add_dependency(n("render"), n("plugin", p.name(), "index"))
@@ -373,7 +388,7 @@ class MwikiBuilder:
 
     for p in added:
       if not self.root.joinpath(PLUGIN_DIR, "{}.py".format(p)).exists():
-        raise Exception("Could not find {}.py", name)
+        raise Exception("Could not find plugins/{}.py".format(name))
       self.__add_plugin(new_plugins[p])
 
     self.plugins = new_plugins
