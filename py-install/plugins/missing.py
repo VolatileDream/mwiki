@@ -28,28 +28,23 @@ class MissingPlugin(Plugin, MetaPageMixin):
   def render_metapage(self, index):
     lines = index.split("\n")
 
-    # page -> links out
-    mentions = {}
+    pages = set()
+
+    # page -> links in
+    missing = {}
 
     key = None
     for l in lines:
       if l.startswith("#"):
         key = l[1:]
-        if key not in mentions:
-          mentions[key] = set()
-      else:
-        mentions[key].add(l)
+        pages.add(key)
+        continue
 
-    # page -> links in
-    missing = {}
-    for key in mentions:
-      links = mentions[key]
-      for l in links:
-        if l not in missing:
-          missing[l] = set()
-        missing[l].add(key)
+      if l not in missing:
+        missing[l] = set()
+      missing[l].add(key)
 
-    for key in mentions:
+    for key in pages:
       # these pages exist
       if key in missing:
         del missing[key]
@@ -58,7 +53,7 @@ class MissingPlugin(Plugin, MetaPageMixin):
     for key in missing:
       output.append(key)
       for incoming in missing[key]:
-        output.append("&nbsp;#{}".format(incoming))
+        output.append("&nbsp;&nbsp;#{}".format(incoming))
 
     return "\n".join(output)
 
