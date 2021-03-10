@@ -51,7 +51,7 @@ class HtmlRender(pymwiki.plugins.Plugin, pymwiki.plugins.RenderMixin):
     (">", "&gt;"),
     ("^# (.+)$", "<h1>\\1</h1>"),
     ("^##+ (.+)$", "<h4>\\1</h4>"),
-    ("([#@]([a-zA-Z0-9~-]+))", '<a href="\\2.html">\\1</a>'),
+    ("([#@]([a-zA-Z0-9~_-]+))", '<a href="\\2.html">\\1</a>'),
     ("^(\\[([^\\]+])\\]:)",'<span id="LINK-\\2">\\1</span>'),
     ("(\\[([^\\]+])\\])",'<a href="#LINK-\\2">\\1</a>'),
     ("^---+$", "<hr/>"),
