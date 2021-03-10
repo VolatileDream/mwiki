@@ -49,7 +49,7 @@ class MissingPlugin(Plugin, MetaPageMixin):
       if key in missing:
         del missing[key]
 
-    output = ["# ~missing"]
+    output = ["# ~missing", "---"]
     for key in missing:
       output.append(key)
       for incoming in missing[key]:
