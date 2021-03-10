@@ -1,4 +1,0 @@
-include_rules
-
-: | entries/*.mw |> plugin.d/events/run > %o |> partial/~events.md <meta>
-

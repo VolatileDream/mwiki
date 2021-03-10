@@ -1,3 +1,0 @@
-include_rules
-
-: | entries/*.mw |> plugin.d/quotes/run > %o |> partial/~quotes.md <meta>
