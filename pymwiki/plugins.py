@@ -40,13 +40,13 @@ class Plugin:
 class MetaPageMixin:
   def render_metapage(self, index : bytes) -> str:
     """Using the index, generate the plugins meta-page."""
-    pass
+    raise Exception("Forgot to implement {}.render_metapage".format(type(self).__name__))
 
 
 class RenderMixin:
   def get_content(self, entry_name : str, index : bytes) -> str:
     """Using the content from the index, generate render content."""
-    pass
+    raise Exception("Forgot to implement {}.get_content".format(type(self).__name__))
 
 
 class DirectiveHandling(enum.Enum):
@@ -89,7 +89,7 @@ class DirectivePlugin(Plugin):
     return json.dumps(index_content)
 
   def directives(self) -> Dict[str, DirectiveHandling]:
-    pass
+    raise Exception("Forgot to implement {}.directives".format(type(self).__name__))
 
   @staticmethod
   def rewrite_content(content, plugin: ForwardRef('DirectivePlugin')):
