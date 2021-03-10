@@ -49,6 +49,8 @@ class EventsPlugin(Plugin, MetaPageMixin):
 
     lines = index.split("\n")
     for line in lines:
+      if not line:
+        continue
       date_str, event_type, event = EVENT.match(line).groups()
       d = date(date_str)
 
@@ -104,5 +106,5 @@ class EventsPlugin(Plugin, MetaPageMixin):
 
     all_events.sort()
 
-    return "# Events\n" + "\n".join(all_events)
+    return "# Events\n---\n" + "\n".join(all_events)
 
