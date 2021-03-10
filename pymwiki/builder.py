@@ -82,7 +82,7 @@ class MwikiBuilder:
     if missing:
       raise Exception("bad template references plugins that don't exist: {}".format(", ".join(missing)))
 
-  def __build_plugin(self, key, storage):
+  def __build_plugin(self, key, storage, deps_func):
     _p, name, instr, *entry = f(key)
 
     if name == "impl":
@@ -92,9 +92,11 @@ class MwikiBuilder:
     plugin = self.plugins[name]
     if instr == "index" and len(entry) == 0:
       index = {}
-      for index_key in storage.iterate(prefix=n("plugin", name, "index", end=True)):
+      for index_key in filter(lambda x: x.startswith(key), deps_func()):
         _plugin, _pname, _index, name = f(index_key)
-        index[name] = storage.get(index_key)
+        content = storage.get(index_key, None)
+        if content:
+          index[name] = content
       return plugin.aggregate_index(index)
 
     elif instr == "index" and len(entry) == 1:
@@ -141,7 +143,7 @@ class MwikiBuilder:
 
     elif instr == "index":
       entries = set()
-      for key in self.manager.storage().iterate(n("file", end=True)):
+      for key in deps_func():
         _e, name = f(key)
         entries.add(name)
 
@@ -187,7 +189,7 @@ class MwikiBuilder:
       return self.__template().render(**binds)
 
     elif instr == "plugin":
-      return self.__build_plugin(name, storage)
+      return self.__build_plugin(name, storage, deps_func)
 
     else:
       raise Exception("Building {} not implemented".format(repr(name)))
@@ -232,7 +234,6 @@ class MwikiBuilder:
 
     # Special plugins, exempt from normal rules.
     if p.name() in ["html", "index"]:
-      #self.manager.add_dependency("render", n("plugin", "impl", p.name()))
       return
 
     # fake node used to link things to the plugins index.

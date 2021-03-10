@@ -23,28 +23,29 @@ class TestStorage:
 # Duck tying for the win...
 class RecordingStorageTests(unittest.TestCase):
   def test_contains(self):
-    r = RecordingStorage(t := TestStorage(), t)
+    r = RecordingStorage(t := TestStorage())
 
     self.assertEqual(r.contains("abc"), "contains")
     self.assertEqual(t.calls, [("contains", "abc")])
 
   def test_get(self):
-    r = RecordingStorage(t := TestStorage(), t)
+    r = RecordingStorage(t := TestStorage())
     self.assertEqual(r.get("abc", "123"), "get")
     self.assertEqual(t.calls, [("get", "abc", "123")])
 
   def test_iterate(self):
-    r = RecordingStorage(t := TestStorage(), t)
-    self.assertEqual(list(r.iterate(prefix="abc")), ["iterate"])
-    self.assertEqual(t.calls, [("iterate", "abc")])
+    r = RecordingStorage(t := TestStorage())
+    with self.assertRaises(Exception):
+      r.iterate()
+    self.assertEqual(t.calls, [])
 
   def test_put(self):
-    r = RecordingStorage(t := TestStorage(), t)
+    r = RecordingStorage(t := TestStorage())
     with self.assertRaises(Exception):
       r.put("abc", "def")
 
   def test_remove(self):
-    r = RecordingStorage(t := TestStorage(), t)
+    r = RecordingStorage(t := TestStorage())
     with self.assertRaises(Exception):
       r.remove("abc")
 
