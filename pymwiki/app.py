@@ -136,4 +136,7 @@ class MwikiApp:
     for e in entries:
       print(e)
 
-
+  def graph(self):
+    for n1, n2 in self.__b().graph():
+      print(n1, "->", n2)
+    

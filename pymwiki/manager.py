@@ -170,7 +170,12 @@ class Manager:
     """Adds a dependency to name.
 
     Because this changes the dependency set for `name`, name gets marked as
-    changed and needing rebuild.    
+    changed and needing rebuild. Further, nodes with dependencies are considered
+    generated, and as such can no longer be written to outside of building
+    items.
     """
     self.dag.edge(dependency, name)
 
+  def all_edges(self):
+    "Return all edges in the dependency graph."
+    return self.dag.edges()

@@ -446,3 +446,7 @@ class MwikiBuilder:
         key = "index"
  
       self.manager.build(key)
+
+  def graph(self):
+    return self.manager.all_edges()
+

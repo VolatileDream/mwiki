@@ -26,6 +26,7 @@ def main():
     "edit": lambda m, y: m.edit(*y),
     "browse": lambda m, y: m.browse(*y),
     "entries": lambda m, y: m.entries(reverse=f(y, "-r", "--reverse")),
+    "graph": lambda m, y: m.graph(),
   }
 
   if len(sys.argv) <= 1:

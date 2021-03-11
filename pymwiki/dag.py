@@ -299,3 +299,11 @@ class DependencyGraph:
       for row in c:
         yield row[0]
 
+  def edges(self):
+    with self.cursor() as c:
+      c.execute("""SELECT from_.name, to_.name 
+                    FROM Edges
+                    JOIN Nodes AS from_ ON Edges.from_id = from_.rowid
+                    JOIN Nodes AS to_ ON Edges.to_id = to_.rowid;""")
+      for row in c:
+        yield (row[0], row[1])
