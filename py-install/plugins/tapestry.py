@@ -24,7 +24,7 @@ def render_event(thread, event, mentions):
     return " * #{} as @{}".format(event, ", @".join(mentions))
 
 
-class TapestryPlugin(DirectivePlugin):
+class TapestryPlugin(DirectivePlugin, RenderMixin):
   def name(self):
     return "tapestry"
 

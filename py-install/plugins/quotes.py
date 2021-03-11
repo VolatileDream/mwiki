@@ -21,7 +21,7 @@ class QuotesPlugin(DirectivePlugin, MetaPageMixin):
       "---------",
     ]
     for key in ordering:
-      quotes = index_dict[key].strip().split("\n")
+      quotes = index_dict[key]
       for q in quotes:
         if not q:
           continue

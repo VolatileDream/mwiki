@@ -82,11 +82,14 @@ class DirectivePlugin(Plugin):
         if line.startswith(p):
           keep.append(line)
           break # only add to keep once.
-    return "\n".join(keep)
+    return json.dumps(keep)
 
   @final
   def aggregate_index(self, index_content):
-    return json.dumps(index_content)
+    index = {}
+    for key, value in index_content.items():
+      index[key] = json.loads(value)
+    return json.dumps(index)
 
   def directives(self) -> Dict[str, DirectiveHandling]:
     raise Exception("Forgot to implement {}.directives".format(type(self).__name__))
