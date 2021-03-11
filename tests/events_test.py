@@ -1,7 +1,5 @@
 import unittest
 import sys
-from pymwiki.manager import Builder, Manager, RecordingStorage, ManagedStorage
-from pymwiki.exceptions import NotFoundException
 
 try:
   from events import EventsPlugin
@@ -33,6 +31,7 @@ class EventTests(unittest.TestCase):
 
     expect = [
       "# Events",
+      "---",
       " - 2020/10/10 def",
       " - 2020/10/11 hello",
       " - 2020/11/11 world",
@@ -48,6 +47,7 @@ class EventTests(unittest.TestCase):
 
     expect = [
       "# Events",
+      "---",
       " - 2020/10/11-2020/11/10 hello",
     ]
 
@@ -65,6 +65,7 @@ class EventTests(unittest.TestCase):
     # Notice the interleave, like matching parens.
     expect = [
       "# Events",
+      "---",
       " - 2020/01/11-2020/04/11 hello",
       " - 2020/02/11-2020/03/11 hello",
     ]
@@ -79,6 +80,7 @@ class EventTests(unittest.TestCase):
 
     expect = [
       "# Events",
+      "---",
       " - *-2020/04/11 world",
       " - 2020/01/11-~ hello",
     ]
