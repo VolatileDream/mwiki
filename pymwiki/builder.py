@@ -290,7 +290,9 @@ class MwikiBuilder:
 
     # add plugin edges too.
     for p in self.plugins:
-      self.__link_entry_to_plugin(entry, p)
+      # These were created above.
+      if p not in ("html", "index"):
+        self.__link_entry_to_plugin(entry, self.plugins[p])
 
   def __check_plugin(self, name):
     self.__check(n("plugin", "impl", name),
@@ -418,19 +420,23 @@ class MwikiBuilder:
     entries.sort(key=lambda x: x.upper())
     return entries
 
-  def edit_entry(self, entry, editor_callback):
-    key = n("entry", entry)
-    with NamedTemporaryFile() as f:
-      val = self.manager.storage().get(key)
+  def edit_entry(self, entry, content_callback):
+    tmp_name = "mwiki-{}--".format(entry)
+    with NamedTemporaryFile(prefix=tmp_name, mode='w+t') as f:
+      val = self.manager.storage().get(n("entry", entry), default="")
       if val:
-        t.write(val)
-        t.flush()
-      editor_callback(f.name)
+        f.write(val)
+        f.flush()
+        f.seek(0)
+      content_callback(f)
+      f.seek(0) # might be modified by callback
       val = f.read()
       if val:
         with self.manager.transaction():
-          self.manager.store().put(key, f.read())
-          self.manager.build(n("html", key))
+          self.check()
+          self.import_config()
+          self.put(entry, val)
+          self.manager.build(n("file", entry))
 
   def run(self, entry=None):
     with self.manager.transaction():

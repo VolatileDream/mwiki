@@ -117,17 +117,18 @@ class MwikiApp:
     if not entry:
       raise Exception("Can't create the empty entry.")
 
-    content = None
+    content_callback = None
     if not sys.stdin.isatty():
-      content = sys.stdin.read()
-      self.__b().put(entry, content)
+      content_callback = lambda f: f.write(sys.stdin.read())
     else:
       if not self.__b().contains(entry):
         resp = input("'{}' doesn't exist, create it? (Y/n) ".format(entry))
         if resp in ('n', 'N'):
           return 1
 
-      self.__b().edit_entry(entry, lambda x: subprocess.run(["sensible-editor", x], check=True))
+      content_callback = lambda f: subprocess.run(["sensible-editor", f.name], check=True)
+
+    self.__b().edit_entry(entry, content_callback)
 
   def entries(self, reverse=False):
     entries = self.__b().entries()
