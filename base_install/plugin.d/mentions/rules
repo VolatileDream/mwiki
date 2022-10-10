@@ -1,7 +1,0 @@
-include_rules
-
-# 'mentions' works by creating a master mention file, and being queried
-# by each page that wants to know where it was mentioned.
-
-: entries/*.mw |> plugin.d/mentions/indexer > %o |> partial/core-mentions plugin.d/<join>
-

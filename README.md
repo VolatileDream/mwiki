@@ -6,9 +6,7 @@ The mini command line wiki
 
 `mwiki` is a very minimal command line wiki. It supports almost none of the traditional wiki features, opting instead to provide easy page linking, and a simple command line interface.
 
-`mwiki` depends on [Tup], and is setup to leverage the power of the build system (Tup) to generate it's pages. This allows `mwiki` to provide a sensible default for building pages, and then ignore exactly how pages end up getting built.
-
-By modifying the build system rules, `mwiki` can support plugins that do all sorts of things. For example, generate a meta-page that lists all of the dead links (see plugins/missing/run).
+`mwiki` depends on [python3] and [sqlite]. Internally it implements a pseudo build system (like [Make] or [Tup]), and provides a standardized plugin architecture for adding new functionality.
 
 ---
 
@@ -29,15 +27,16 @@ By modifying the build system rules, `mwiki` can support plugins that do all sor
 
 `mwiki` depends on a few different programs, and can be extended to use even more. They are:
 
+  * python3
   * sensible-browser - configure via BROWSER variable
   * sensible-editor - configure via EDITOR variable
-  * [Tup]
 
 Some of the plugins used my mwiki also depend on other programs. They include:
 
   * swish++ - search++ plugin
-  * python3 - tapestry plugin
-
-Not mentioned in either list is the large set of standard unix utils, such as awk, sed, find, etc.
+  * bash & other unix utilities - journal plugin
 
 [Tup]: https://github.com/gittup/tup
+[Make]: https://www.gnu.org/software/make/
+[python3]: https://python.org
+[sqlite]: https://sqlite.org
